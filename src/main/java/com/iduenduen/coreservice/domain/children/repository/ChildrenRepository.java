@@ -1,6 +1,7 @@
 package com.iduenduen.coreservice.domain.children.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,4 +12,6 @@ public interface ChildrenRepository extends JpaRepository<Children, Long> {
 	boolean existsByParentIdAndNameAndDeletedAtIsNull(Long parentId, String name);
 
 	List<Children> findAllByParentIdAndDeletedAtIsNull(Long parentId);
+
+	Optional<Children> findByIdAndParentIdAndDeletedAtIsNull(Long id, Long parentId);
 }

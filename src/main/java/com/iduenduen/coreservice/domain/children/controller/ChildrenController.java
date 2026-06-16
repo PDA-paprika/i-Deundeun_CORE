@@ -3,6 +3,7 @@ package com.iduenduen.coreservice.domain.children.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +16,7 @@ import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateRequest;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateResponse;
+import com.iduenduen.coreservice.domain.children.dto.ChildrenDetailResponse;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenListResponse;
 import com.iduenduen.coreservice.domain.children.service.ChildrenService;
 
@@ -39,6 +41,19 @@ public class ChildrenController {
 	public ResponseEntity<ApiResponse<ChildrenListResponse>> getChildren(
 		@AuthenticationPrincipal Long parentId) {
 		return ApiResponse.success(SuccessStatus.SUCCESS_200, childrenService.getChildren(parentId));
+	}
+
+	@Operation(
+		summary = "자녀 단건 조회",
+		description = """
+			자녀 ID로 특정 자녀의 상세 정보를 조회합니다.
+
+			본인 자녀가 아닌 경우 404를 반환합니다.""")
+	@GetMapping("/{childId}")
+	public ResponseEntity<ApiResponse<ChildrenDetailResponse>> getChild(
+		@AuthenticationPrincipal Long parentId,
+		@PathVariable Long childId) {
+		return ApiResponse.success(SuccessStatus.SUCCESS_200, childrenService.getChild(parentId, childId));
 	}
 
 	@Operation(
