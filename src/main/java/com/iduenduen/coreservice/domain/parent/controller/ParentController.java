@@ -31,44 +31,58 @@ public class ParentController {
     private final ParentService parentService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<ParentResponse>> getMe(@AuthenticationPrincipal Long parentId) {
-        return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.getMe(parentId));
+    public ResponseEntity<ApiResponse<ParentResponse>> getMe() {
+        ParentResponse response = parentService.getMe(getCurrentParentId());
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, response);
     }
 
     @PutMapping
-    public ResponseEntity<ApiResponse<ParentUpdateResponse>> updateMe(
-            @AuthenticationPrincipal Long parentId,
-            @RequestBody ParentUpdateRequest request) {
-        return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.updateMe(parentId, request));
+    public ResponseEntity<ApiResponse<ParentUpdateResponse>> updateMe(@RequestBody ParentUpdateRequest request) {
+        ParentUpdateResponse response = parentService.updateMe(getCurrentParentId(), request);
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, response);
     }
 
     @PutMapping("/selected-child")
     public ResponseEntity<ApiResponse<SelectedChildResponse>> updateSelectedChild(
-            @AuthenticationPrincipal Long parentId,
             @RequestBody SelectedChildRequest request) {
-        return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.updateSelectedChild(parentId, request));
+        SelectedChildResponse response = parentService.updateSelectedChild(getCurrentParentId(), request);
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, response);
     }
 
     @PatchMapping("/wizard-profile")
-    public ResponseEntity<ApiResponse<Void>> updateWizardProfile(
-            @AuthenticationPrincipal Long parentId,
-            @RequestBody WizardProfileRequest request) {
-        parentService.updateWizardProfile(parentId, request);
+    public ResponseEntity<ApiResponse<Void>> updateWizardProfile(@RequestBody WizardProfileRequest request) {
+        parentService.updateWizardProfile(getCurrentParentId(), request);
         return ApiResponse.success(SuccessStatus.SUCCESS_200);
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> withdraw(@AuthenticationPrincipal Long parentId) {
-        parentService.withdraw(parentId);
+    public ResponseEntity<Void> withdraw() {
+        parentService.withdraw(getCurrentParentId());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/holdings")
     public ResponseEntity<ApiResponse<Object>> getHoldings(
-            @AuthenticationPrincipal Long parentId,
             @RequestParam(required = false, defaultValue = "eval_amount_desc") String sort,
             @RequestParam(required = false) Integer limit) {
         // TODO: ETF Server 연동 필요
         return ApiResponse.success(SuccessStatus.SUCCESS_200, null);
+    }
+
+    private Long getCurrentParentId() {
+        // TODO: 인증 구현 후 SecurityContext에서 로그인한 parent id로 교체
+        var attrs = (org.springframework.web.context.request.ServletRequestAttributes)
+                org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        if (attrs == null) {
+            throw new com.iduenduen.coreservice.common.exception.GeneralException(
+                    com.iduenduen.coreservice.common.status.ErrorStatus.UNAUTHORIZED);
+        }
+
+        String parentId = attrs.getRequest().getHeader("X-Parent-Id");
+        if (parentId == null || parentId.isBlank()) {
+            throw new com.iduenduen.coreservice.common.exception.GeneralException(
+                    com.iduenduen.coreservice.common.status.ErrorStatus.UNAUTHORIZED);
+        }
+        return Long.valueOf(parentId);
     }
 }

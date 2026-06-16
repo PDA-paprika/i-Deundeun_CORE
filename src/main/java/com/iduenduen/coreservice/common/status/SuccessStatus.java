@@ -16,7 +16,12 @@ public enum SuccessStatus implements BaseStatus {
      */
     SUCCESS_200("IDEUNDEUN_200", HttpStatus.OK, "성공입니다."),
     SUCCESS_201("IDEUNDEUN_201", HttpStatus.CREATED, "성공입니다."),
-    SUCCESS_204("IDEUNDEUN_204", HttpStatus.NO_CONTENT, "성공입니다.");
+    SUCCESS_204("IDEUNDEUN_204", HttpStatus.NO_CONTENT, "성공입니다."),
+
+    /**
+     * Children
+     */
+    CHILDREN_REGISTER_SUCCESS("CHILDREN_201", HttpStatus.CREATED, "자녀 등록이 완료되었습니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
