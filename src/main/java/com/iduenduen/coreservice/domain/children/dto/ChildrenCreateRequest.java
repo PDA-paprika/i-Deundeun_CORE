@@ -7,6 +7,7 @@ import com.iduenduen.coreservice.domain.children.enums.Gender;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
@@ -17,6 +18,7 @@ public record ChildrenCreateRequest(
 	String name,
 
 	@NotNull
+	@PastOrPresent(message = "생년월일은 오늘 이전 날짜여야 합니다.")
 	@JsonProperty("birth_date")
 	LocalDate birthDate,
 
