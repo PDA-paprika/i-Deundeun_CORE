@@ -30,11 +30,11 @@ class ParentControllerTest {
     }
 
     @Test
-    void updateMe_함수는_인증_미구현으로_500을_반환한다() throws Exception {
+    void updateMe_미인증이면_401을_반환한다() throws Exception {
         mockMvc.perform(put("/parents/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
