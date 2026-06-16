@@ -46,11 +46,11 @@ class ParentControllerTest {
     }
 
     @Test
-    void updateWizardProfile_함수는_인증_미구현으로_500을_반환한다() throws Exception {
+    void updateWizardProfile_미인증이면_401을_반환한다() throws Exception {
         mockMvc.perform(patch("/parents/me/wizard-profile")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
