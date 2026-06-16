@@ -10,5 +10,5 @@ import lombok.Getter;
 public class ParentUpdateResponse {
 
     @JsonProperty("parent_id")
-    private String parentId;
+    private Long parentId;
 }

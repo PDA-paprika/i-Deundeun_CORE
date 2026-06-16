@@ -11,7 +11,7 @@ import lombok.Getter;
 @Builder
 public class ParentResponse {
 
-    private String id;
+    private Long id;
     private String name;
 
     @JsonProperty("birth_date")

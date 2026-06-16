@@ -23,7 +23,7 @@ public class ParentService {
 
     private final ParentRepository parentRepository;
 
-    public ParentResponse getMe(String parentId) {
+    public ParentResponse getMe(Long parentId) {
         Parent parent = findActiveParent(parentId);
 
         return ParentResponse.builder()
@@ -44,7 +44,7 @@ public class ParentService {
     }
 
     @Transactional
-    public ParentUpdateResponse updateMe(String parentId, ParentUpdateRequest request) {
+    public ParentUpdateResponse updateMe(Long parentId, ParentUpdateRequest request) {
         Parent parent = findActiveParent(parentId);
 
         parent.updateProfile(
@@ -62,7 +62,7 @@ public class ParentService {
     }
 
     @Transactional
-    public SelectedChildResponse updateSelectedChild(String parentId, SelectedChildRequest request) {
+    public SelectedChildResponse updateSelectedChild(Long parentId, SelectedChildRequest request) {
         Parent parent = findActiveParent(parentId);
 
         parent.updateSelectedChild(request.getChildId());
@@ -73,7 +73,7 @@ public class ParentService {
     }
 
     @Transactional
-    public void updateWizardProfile(String parentId, WizardProfileRequest request) {
+    public void updateWizardProfile(Long parentId, WizardProfileRequest request) {
         Parent parent = findActiveParent(parentId);
 
         parent.updateWizardProfile(
@@ -84,7 +84,7 @@ public class ParentService {
         );
     }
 
-    private Parent findActiveParent(String parentId) {
+    private Parent findActiveParent(Long parentId) {
         return parentRepository.findByIdAndDeletedAtIsNull(parentId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.NOT_FOUND));
     }

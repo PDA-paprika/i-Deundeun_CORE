@@ -61,7 +61,7 @@ public class ParentController {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, null);
     }
 
-    private String getCurrentParentId() {
+    private Long getCurrentParentId() {
         // TODO: 인증 구현 후 SecurityContext에서 로그인한 parent id로 교체
         throw new UnsupportedOperationException("인증이 아직 구현되지 않았습니다.");
     }

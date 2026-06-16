@@ -47,9 +47,9 @@ class ParentServiceTest {
     @Test
     void getMe_성공() {
         Parent parent = createParent();
-        given(parentRepository.findByIdAndDeletedAtIsNull("parent-1")).willReturn(Optional.of(parent));
+        given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(parent));
 
-        var response = parentService.getMe("parent-1");
+        var response = parentService.getMe(1L);
 
         assertThat(response.getName()).isEqualTo("홍길동");
         assertThat(response.getRegion()).isEqualTo("서울");
@@ -57,16 +57,16 @@ class ParentServiceTest {
 
     @Test
     void getMe_존재하지_않으면_예외() {
-        given(parentRepository.findByIdAndDeletedAtIsNull("parent-1")).willReturn(Optional.empty());
+        given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> parentService.getMe("parent-1"))
+        assertThatThrownBy(() -> parentService.getMe(1L))
                 .isInstanceOf(GeneralException.class);
     }
 
     @Test
     void updateMe_성공() {
         Parent parent = createParent();
-        given(parentRepository.findByIdAndDeletedAtIsNull("parent-1")).willReturn(Optional.of(parent));
+        given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(parent));
 
         ParentUpdateRequest request = new ParentUpdateRequest();
         ReflectionTestUtils.setField(request, "name", "김철수");
@@ -76,7 +76,7 @@ class ParentServiceTest {
         ReflectionTestUtils.setField(request, "region", "부산");
         ReflectionTestUtils.setField(request, "profileImageUrl", "https://example.com/profile.png");
 
-        var response = parentService.updateMe("parent-1", request);
+        var response = parentService.updateMe(1L, request);
 
         assertThat(response.getParentId()).isEqualTo(parent.getId());
         assertThat(parent.getName()).isEqualTo("김철수");
@@ -86,12 +86,12 @@ class ParentServiceTest {
     @Test
     void updateSelectedChild_성공() {
         Parent parent = createParent();
-        given(parentRepository.findByIdAndDeletedAtIsNull("parent-1")).willReturn(Optional.of(parent));
+        given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(parent));
 
         SelectedChildRequest request = new SelectedChildRequest();
         ReflectionTestUtils.setField(request, "childId", "child-1");
 
-        var response = parentService.updateSelectedChild("parent-1", request);
+        var response = parentService.updateSelectedChild(1L, request);
 
         assertThat(response.getSelectedChildId()).isEqualTo("child-1");
     }
@@ -99,7 +99,7 @@ class ParentServiceTest {
     @Test
     void updateWizardProfile_성공() {
         Parent parent = createParent();
-        given(parentRepository.findByIdAndDeletedAtIsNull("parent-1")).willReturn(Optional.of(parent));
+        given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(parent));
 
         WizardProfileRequest request = new WizardProfileRequest();
         ReflectionTestUtils.setField(request, "incomeLevel", "MID");
@@ -107,7 +107,7 @@ class ParentServiceTest {
         ReflectionTestUtils.setField(request, "educationHeat", 4);
         ReflectionTestUtils.setField(request, "dualIncome", true);
 
-        parentService.updateWizardProfile("parent-1", request);
+        parentService.updateWizardProfile(1L, request);
 
         assertThat(parent.getIncomeLevel()).isEqualTo("MID");
         assertThat(parent.getEducationHeat()).isEqualTo(4);
@@ -116,25 +116,25 @@ class ParentServiceTest {
 
     @Test
     void updateMe_존재하지_않으면_예외() {
-        given(parentRepository.findByIdAndDeletedAtIsNull("parent-1")).willReturn(Optional.empty());
+        given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> parentService.updateMe("parent-1", new ParentUpdateRequest()))
+        assertThatThrownBy(() -> parentService.updateMe(1L, new ParentUpdateRequest()))
                 .isInstanceOf(GeneralException.class);
     }
 
     @Test
     void updateSelectedChild_존재하지_않으면_예외() {
-        given(parentRepository.findByIdAndDeletedAtIsNull("parent-1")).willReturn(Optional.empty());
+        given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> parentService.updateSelectedChild("parent-1", new SelectedChildRequest()))
+        assertThatThrownBy(() -> parentService.updateSelectedChild(1L, new SelectedChildRequest()))
                 .isInstanceOf(GeneralException.class);
     }
 
     @Test
     void updateWizardProfile_존재하지_않으면_예외() {
-        given(parentRepository.findByIdAndDeletedAtIsNull("parent-1")).willReturn(Optional.empty());
+        given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> parentService.updateWizardProfile("parent-1", new WizardProfileRequest()))
+        assertThatThrownBy(() -> parentService.updateWizardProfile(1L, new WizardProfileRequest()))
                 .isInstanceOf(GeneralException.class);
     }
 }

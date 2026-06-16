@@ -2,14 +2,14 @@ package com.iduenduen.coreservice.domain.parent.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import com.iduenduen.coreservice.common.base.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -26,8 +26,9 @@ import lombok.NoArgsConstructor;
 public class Parent extends BaseEntity {
 
     @Id
-    @Column(length = 36, updatable = false, nullable = false)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(updatable = false, nullable = false)
+    private Long id;
 
     @Column(length = 50, nullable = false)
     private String email;
@@ -101,13 +102,6 @@ public class Parent extends BaseEntity {
         this.dualIncome = dualIncome;
         this.clusterValue = clusterValue;
         this.certFileUrl = certFileUrl;
-    }
-
-    @PrePersist
-    private void generateId() {
-        if (this.id == null) {
-            this.id = UUID.randomUUID().toString();
-        }
     }
 
     public void updateProfile(String name, LocalDate birthDate, String relation, Integer childCount,

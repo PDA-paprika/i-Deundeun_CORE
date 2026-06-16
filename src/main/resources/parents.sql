@@ -1,6 +1,6 @@
 CREATE TABLE `parents`
 (
-    `id`                CHAR(36)        NOT NULL,
+    `id`                BIGINT          NOT NULL                AUTO_INCREMENT  PRIMARY KEY,
     `email`             VARCHAR(50)     NOT NULL                COMMENT 'Unique',
     `account_number`    VARCHAR(20)     NOT NULL                COMMENT '로그인용 계좌번호',
     `selected_child_id` CHAR(36)        NULL	                COMMENT '앱 마지막 선택 자녀',

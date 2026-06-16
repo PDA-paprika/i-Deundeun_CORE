@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 
-public interface ParentRepository extends JpaRepository<Parent, String> {
+public interface ParentRepository extends JpaRepository<Parent, Long> {
 
-    Optional<Parent> findByIdAndDeletedAtIsNull(String id);
+    Optional<Parent> findByIdAndDeletedAtIsNull(Long id);
 }
