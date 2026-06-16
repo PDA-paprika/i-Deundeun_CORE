@@ -36,6 +36,13 @@ public class ChildrenService {
 	}
 
 	@Transactional
+	public void deleteChild(Long parentId, Long childId) {
+		Children child = childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+		child.softDelete();
+	}
+
+	@Transactional
 	public ChildrenDetailResponse updateChild(Long parentId, Long childId, ChildrenUpdateRequest request) {
 		Children child = childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));

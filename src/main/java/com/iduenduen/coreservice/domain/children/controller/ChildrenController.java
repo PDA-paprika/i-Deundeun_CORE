@@ -2,6 +2,7 @@ package com.iduenduen.coreservice.domain.children.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,6 +57,17 @@ public class ChildrenController {
 		@AuthenticationPrincipal Long parentId,
 		@PathVariable Long childId) {
 		return ApiResponse.success(SuccessStatus.SUCCESS_200, childrenService.getChild(parentId, childId));
+	}
+
+	@Operation(
+		summary = "자녀 삭제",
+		description = "자녀를 삭제합니다. 실제 데이터는 보존되며 소프트 딜리트 처리됩니다.")
+	@DeleteMapping("/{childId}")
+	public ResponseEntity<ApiResponse<Void>> deleteChild(
+		@AuthenticationPrincipal Long parentId,
+		@PathVariable Long childId) {
+		childrenService.deleteChild(parentId, childId);
+		return ApiResponse.success(SuccessStatus.CHILDREN_DELETE_SUCCESS);
 	}
 
 	@Operation(

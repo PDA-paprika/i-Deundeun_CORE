@@ -87,6 +87,10 @@ public class Children extends BaseEntity {
 		return Period.between(this.birthDate, LocalDate.now()).getYears();
 	}
 
+	public void softDelete() {
+		this.deletedAt = LocalDateTime.now();
+	}
+
 	public void update(String name, LocalDate birthDate, Gender gender, String securitiesAccount, String profileImageUrl) {
 		if (name != null) this.name = name;
 		if (birthDate != null) this.birthDate = birthDate;
