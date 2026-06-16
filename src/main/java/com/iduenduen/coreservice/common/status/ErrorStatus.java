@@ -30,6 +30,7 @@ public enum ErrorStatus implements BaseStatus {
     /**
      * Children
      */
+    CHILDREN_NOT_FOUND("CHILDREN_404", HttpStatus.NOT_FOUND, "존재하지 않는 자녀입니다."),
     CHILDREN_DUPLICATE_NAME("CHILDREN_409", HttpStatus.CONFLICT, "이미 등록된 자녀 이름입니다."),
 
     /**

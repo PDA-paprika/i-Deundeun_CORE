@@ -2,6 +2,7 @@ package com.iduenduen.coreservice.domain.children.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 
 import com.iduenduen.coreservice.common.base.BaseEntity;
 import com.iduenduen.coreservice.domain.children.enums.CreatedVia;
@@ -79,5 +80,22 @@ public class Children extends BaseEntity {
 		this.profileImageUrl = profileImageUrl;
 		this.customerSegmentCode = customerSegmentCode;
 		this.createdVia = createdVia != null ? createdVia : CreatedVia.ONBOARDING;
+	}
+
+	//만나이 계산
+	public int getAge() {
+		return Period.between(this.birthDate, LocalDate.now()).getYears();
+	}
+
+	public void softDelete() {
+		this.deletedAt = LocalDateTime.now();
+	}
+
+	public void update(String name, LocalDate birthDate, Gender gender, String securitiesAccount, String profileImageUrl) {
+		if (name != null) this.name = name;
+		if (birthDate != null) this.birthDate = birthDate;
+		if (gender != null) this.gender = gender;
+		if (securitiesAccount != null) this.securitiesAccount = securitiesAccount;
+		if (profileImageUrl != null) this.profileImageUrl = profileImageUrl;
 	}
 }
