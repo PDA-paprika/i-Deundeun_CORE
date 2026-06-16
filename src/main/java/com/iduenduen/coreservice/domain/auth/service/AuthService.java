@@ -1,5 +1,10 @@
 package com.iduenduen.coreservice.domain.auth.service;
 
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +19,7 @@ import com.iduenduen.coreservice.domain.auth.dto.SignupResponse;
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -24,6 +30,7 @@ public class AuthService {
     private final ParentRepository parentRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final StringRedisTemplate redisTemplate;
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
@@ -54,13 +61,11 @@ public class AuthService {
                 .build();
 
         Parent saved = parentRepository.save(parent);
-
-        return SignupResponse.builder()
-                .parentId(saved.getId())
-                .build();
+        return SignupResponse.builder().parentId(saved.getId()).build();
     }
 
-    public LoginResponse login(LoginRequest request) {
+    @Transactional
+    public LoginResponse login(LoginRequest request, HttpServletResponse response) {
         if (request.getEmail() == null || request.getPassword() == null) {
             throw new GeneralException(ErrorStatus.BAD_REQUEST);
         }
@@ -73,18 +78,70 @@ public class AuthService {
         }
 
         String accessToken = jwtProvider.createAccessToken(parent.getId());
+        String refreshToken = jwtProvider.createRefreshToken(parent.getId());
+
+        redisTemplate.opsForValue().set(
+                "refresh:" + parent.getId(),
+                refreshToken,
+                jwtProvider.getRefreshTokenExpirationMs(),
+                TimeUnit.MILLISECONDS
+        );
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(false) // prod 환경에서는 true로 변경 필요
+                .path("/")
+                .maxAge(jwtProvider.getRefreshTokenExpirationMs() / 1000)
+                .sameSite("Lax")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return LoginResponse.builder()
                 .accessToken(accessToken)
-                .parentId(parent.getId())
+                .refreshToken(refreshToken)
                 .build();
     }
 
-    /**
-     * 토큰 서명/만료를 검증하고, 탈퇴(deleted_at) 여부까지 함께 확인한다.
-     * JWT는 stateless라 발급된 토큰 자체를 지울 수 없으므로, 검증 시점에 현재 DB 상태를 다시 확인해
-     * 탈퇴한 사용자의 토큰은 즉시 거부되도록 한다.
-     */
+    public String reissue(String refreshToken) {
+        if (!jwtProvider.isValid(refreshToken)) {
+            throw new GeneralException(ErrorStatus.INVALID_TOKEN);
+        }
+
+        Long parentId = jwtProvider.getParentId(refreshToken);
+        String savedToken = redisTemplate.opsForValue().get("refresh:" + parentId);
+
+        if (!refreshToken.equals(savedToken)) {
+            throw new GeneralException(ErrorStatus.INVALID_TOKEN);
+        }
+
+        return jwtProvider.createAccessToken(parentId);
+    }
+
+    @Transactional
+    public void logout(String accessToken, String refreshToken, HttpServletResponse response) {
+        if (jwtProvider.isValid(refreshToken)) {
+            Long parentId = jwtProvider.getParentId(refreshToken);
+            redisTemplate.delete("refresh:" + parentId);
+        }
+
+        if (jwtProvider.isValid(accessToken)) {
+            long remaining = jwtProvider.getRemainingExpiration(accessToken);
+            redisTemplate.opsForValue().set(
+                    "blacklist:" + accessToken,
+                    "logout",
+                    remaining,
+                    TimeUnit.MILLISECONDS
+            );
+        }
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
     public Long resolveActiveParentId(String accessToken) {
         Long parentId;
         try {
