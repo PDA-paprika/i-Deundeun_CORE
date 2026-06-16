@@ -10,5 +10,5 @@ import lombok.Getter;
 public class SelectedChildResponse {
 
     @JsonProperty("selected_child_id")
-    private String selectedChildId;
+    private Long selectedChildId;
 }
