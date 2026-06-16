@@ -7,6 +7,7 @@ import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateRequest;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateResponse;
+import com.iduenduen.coreservice.domain.children.dto.ChildrenListResponse;
 import com.iduenduen.coreservice.domain.children.entity.Children;
 import com.iduenduen.coreservice.domain.children.enums.CreatedVia;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
@@ -21,6 +22,10 @@ public class ChildrenService {
 
 	private final ChildrenRepository childrenRepository;
 	private final ParentRepository parentRepository;
+
+	public ChildrenListResponse getChildren(Long parentId) {
+		return ChildrenListResponse.from(childrenRepository.findAllByParentIdAndDeletedAtIsNull(parentId));
+	}
 
 	@Transactional
 	public ChildrenCreateResponse registerChild(Long parentId, ChildrenCreateRequest request) {
