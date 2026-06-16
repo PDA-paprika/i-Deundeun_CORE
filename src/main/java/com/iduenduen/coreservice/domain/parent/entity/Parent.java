@@ -125,4 +125,8 @@ public class Parent extends BaseEntity {
         this.educationHeat = educationHeat;
         this.dualIncome = dualIncome;
     }
+
+    public void withdraw() {
+        this.deletedAt = LocalDateTime.now();
+    }
 }

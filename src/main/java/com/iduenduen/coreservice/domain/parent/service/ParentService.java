@@ -89,6 +89,12 @@ public class ParentService {
         );
     }
 
+    @Transactional
+    public void withdraw(Long parentId) {
+        Parent parent = findActiveParent(parentId);
+        parent.withdraw();
+    }
+
     private Parent findActiveParent(Long parentId) {
         return parentRepository.findByIdAndDeletedAtIsNull(parentId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.NOT_FOUND));

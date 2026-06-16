@@ -139,4 +139,22 @@ class ParentServiceTest {
         assertThatThrownBy(() -> parentService.updateWizardProfile(1L, new WizardProfileRequest()))
                 .isInstanceOf(GeneralException.class);
     }
+
+    @Test
+    void withdraw_성공() {
+        Parent parent = createParent();
+        given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(parent));
+
+        parentService.withdraw(1L);
+
+        assertThat(parent.getDeletedAt()).isNotNull();
+    }
+
+    @Test
+    void withdraw_존재하지_않으면_예외() {
+        given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> parentService.withdraw(1L))
+                .isInstanceOf(GeneralException.class);
+    }
 }

@@ -30,6 +30,15 @@ public enum ErrorStatus implements BaseStatus {
      * Children
      */
     CHILDREN_DUPLICATE_NAME("CHILDREN_409", HttpStatus.CONFLICT, "이미 등록된 자녀 이름입니다.");
+    CONFLICT("COMM_409", HttpStatus.CONFLICT, "이미 존재하는 리소스입니다."),
+    INTERNAL_SERVER_ERROR("COMM_500", HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다."),
+
+    /**
+     * Auth
+     */
+    INVALID_CREDENTIALS("AUTH_401", HttpStatus.UNAUTHORIZED, "계좌번호 또는 비밀번호가 올바르지 않습니다."),
+    DUPLICATE_EMAIL("AUTH_409_01", HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
+    DUPLICATE_ACCOUNT_NUMBER("AUTH_409_02", HttpStatus.CONFLICT, "이미 사용 중인 계좌번호입니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
