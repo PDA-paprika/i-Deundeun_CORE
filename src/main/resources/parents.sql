@@ -17,7 +17,7 @@ CREATE TABLE `parents`
     `dual_income`       BOOLEAN         NULL	                COMMENT '맞벌이 여부',
     `cluster_value`     INT             NULL                    COMMENT '군집 유형(1-N)',
     `created_at`        TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`        TIMESTAMP       NULL	DEFAULT NULL,
+    `updated_at`        TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `deleted_at`        TIMESTAMP       NULL,
     `cert_file_url`     VARCHAR(500)    NOT NULL                COMMENT '가족관계증명서',
     CONSTRAINT `uk_parents_email` UNIQUE (`email`)
