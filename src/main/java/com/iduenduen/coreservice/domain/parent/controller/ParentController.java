@@ -55,9 +55,9 @@ public class ParentController {
     }
 
     @DeleteMapping
-    public ResponseEntity<ApiResponse<Void>> withdraw() {
+    public ResponseEntity<Void> withdraw() {
         parentService.withdraw(getCurrentParentId());
-        return ApiResponse.success(SuccessStatus.SUCCESS_204);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/holdings")
