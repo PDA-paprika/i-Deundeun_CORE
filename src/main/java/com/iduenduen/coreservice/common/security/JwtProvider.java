@@ -37,13 +37,17 @@ public class JwtProvider {
     }
 
     public Long getParentId(String token) {
-        String subject = Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
-        return Long.valueOf(subject);
+        try {
+            String subject = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getSubject();
+            return Long.valueOf(subject);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new InvalidTokenException(e);
+        }
     }
 
     public boolean isValid(String token) {
@@ -52,6 +56,12 @@ public class JwtProvider {
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;
+        }
+    }
+
+    public static class InvalidTokenException extends RuntimeException {
+        public InvalidTokenException(Throwable cause) {
+            super(cause);
         }
     }
 }

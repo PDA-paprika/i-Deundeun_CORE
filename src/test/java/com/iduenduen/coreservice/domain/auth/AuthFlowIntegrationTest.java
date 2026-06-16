@@ -67,6 +67,11 @@ class AuthFlowIntegrationTest {
         assertThat(accessToken).isNotBlank();
         assertThat(loggedInParentId).isEqualTo(parentId);
 
+        // 탈퇴 전: 발급받은 토큰은 정상적으로 검증된다.
+        mockMvc.perform(get("/auth/validate")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
         // 게이트웨이가 JWT 검증 후 X-Parent-Id 헤더로 전달한다고 가정하고 인증된 요청을 시뮬레이션한다.
         mockMvc.perform(delete("/parents/me")
                         .header("X-Parent-Id", String.valueOf(parentId)))
@@ -75,6 +80,11 @@ class AuthFlowIntegrationTest {
         mockMvc.perform(get("/parents/me")
                         .header("X-Parent-Id", String.valueOf(parentId)))
                 .andExpect(status().isNotFound());
+
+        // 탈퇴 후: 만료 전 토큰이라도 더 이상 유효하지 않다.
+        mockMvc.perform(get("/auth/validate")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isUnauthorized());
     }
 
     private Long readLong(MvcResult result, String jsonPath) throws Exception {

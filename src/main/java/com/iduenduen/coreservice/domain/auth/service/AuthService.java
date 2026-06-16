@@ -79,4 +79,22 @@ public class AuthService {
                 .parentId(parent.getId())
                 .build();
     }
+
+    /**
+     * 토큰 서명/만료를 검증하고, 탈퇴(deleted_at) 여부까지 함께 확인한다.
+     * JWT는 stateless라 발급된 토큰 자체를 지울 수 없으므로, 검증 시점에 현재 DB 상태를 다시 확인해
+     * 탈퇴한 사용자의 토큰은 즉시 거부되도록 한다.
+     */
+    public Long resolveActiveParentId(String accessToken) {
+        Long parentId;
+        try {
+            parentId = jwtProvider.getParentId(accessToken);
+        } catch (JwtProvider.InvalidTokenException e) {
+            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
+        }
+
+        return parentRepository.findByIdAndDeletedAtIsNull(parentId)
+                .map(Parent::getId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.UNAUTHORIZED));
+    }
 }

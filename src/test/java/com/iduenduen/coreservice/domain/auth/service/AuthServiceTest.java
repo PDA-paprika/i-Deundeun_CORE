@@ -157,4 +157,33 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOf(GeneralException.class);
     }
+
+    @Test
+    void resolveActiveParentId_성공() {
+        Parent parent = createParent();
+        given(jwtProvider.getParentId("valid-token")).willReturn(1L);
+        given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(parent));
+
+        Long parentId = authService.resolveActiveParentId("valid-token");
+
+        assertThat(parentId).isEqualTo(1L);
+    }
+
+    @Test
+    void resolveActiveParentId_토큰이_위조되었으면_예외() {
+        given(jwtProvider.getParentId("invalid-token"))
+                .willThrow(new JwtProvider.InvalidTokenException(new RuntimeException("bad signature")));
+
+        assertThatThrownBy(() -> authService.resolveActiveParentId("invalid-token"))
+                .isInstanceOf(GeneralException.class);
+    }
+
+    @Test
+    void resolveActiveParentId_탈퇴한_사용자면_예외() {
+        given(jwtProvider.getParentId("withdrawn-user-token")).willReturn(1L);
+        given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.resolveActiveParentId("withdrawn-user-token"))
+                .isInstanceOf(GeneralException.class);
+    }
 }
