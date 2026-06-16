@@ -22,9 +22,16 @@ public class SwaggerConfig {
 				.bearerFormat("JWT")
 				.name("Authorization");
 
+		SecurityScheme parentIdScheme = new SecurityScheme()
+				.type(SecurityScheme.Type.APIKEY)
+				.in(SecurityScheme.In.HEADER)
+				.name("X-Parent-Id");
+
 		return new OpenAPI()
-				.addSecurityItem(new SecurityRequirement().addList("BearerAuth"))
-				.components(new Components().addSecuritySchemes("BearerAuth", bearerScheme))
+				.addSecurityItem(new SecurityRequirement().addList("BearerAuth").addList("X-Parent-Id"))
+				.components(new Components()
+						.addSecuritySchemes("BearerAuth", bearerScheme)
+						.addSecuritySchemes("X-Parent-Id", parentIdScheme))
 				.info(new Info()
 						.title("IDeundeun core-service Backend API")
 						.description("프로디지털아카데미 아이 든든 프로젝트의 백엔드 API 문서입니다.")
