@@ -50,7 +50,7 @@ class AuthFlowIntegrationTest {
 
         String loginRequest = """
                 {
-                  "account_number": "9999999999",
+                  "email": "flow-test@example.com",
                   "password": "mypassword123"
                 }
                 """;
