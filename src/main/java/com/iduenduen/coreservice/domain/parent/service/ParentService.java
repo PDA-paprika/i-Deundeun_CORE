@@ -47,6 +47,11 @@ public class ParentService {
     public ParentUpdateResponse updateMe(Long parentId, ParentUpdateRequest request) {
         Parent parent = findActiveParent(parentId);
 
+        if (request.getName() == null || request.getBirthDate() == null || request.getRelation() == null
+                || request.getChildCount() == null || request.getRegion() == null) {
+            throw new GeneralException(ErrorStatus.BAD_REQUEST);
+        }
+
         parent.updateProfile(
                 request.getName(),
                 request.getBirthDate(),
