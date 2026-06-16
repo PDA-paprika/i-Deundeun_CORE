@@ -42,5 +42,5 @@ public class ParentResponse {
     private Integer clusterValue;
 
     @JsonProperty("selected_child_id")
-    private String selectedChildId;
+    private Long selectedChildId;
 }

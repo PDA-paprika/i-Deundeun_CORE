@@ -36,8 +36,8 @@ public class Parent extends BaseEntity {
     @Column(name = "account_number", length = 20, nullable = false)
     private String accountNumber;
 
-    @Column(name = "selected_child_id", length = 36)
-    private String selectedChildId;
+    @Column(name = "selected_child_id")
+    private Long selectedChildId;
 
     @Column(name = "password_hash", length = 255, nullable = false)
     private String passwordHash;
@@ -82,7 +82,7 @@ public class Parent extends BaseEntity {
     private String certFileUrl;
 
     @Builder
-    public Parent(String email, String accountNumber, String selectedChildId, String passwordHash,
+    public Parent(String email, String accountNumber, Long selectedChildId, String passwordHash,
                   String name, LocalDate birthDate, String relation, String region, Integer childCount,
                   String profileImageUrl, String incomeLevel, String assetRange, Integer educationHeat,
                   Boolean dualIncome, Integer clusterValue, String certFileUrl) {
@@ -114,7 +114,7 @@ public class Parent extends BaseEntity {
         this.profileImageUrl = profileImageUrl;
     }
 
-    public void updateSelectedChild(String selectedChildId) {
+    public void updateSelectedChild(Long selectedChildId) {
         this.selectedChildId = selectedChildId;
     }
 

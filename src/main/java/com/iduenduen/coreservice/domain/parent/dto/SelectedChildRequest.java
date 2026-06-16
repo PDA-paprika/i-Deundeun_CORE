@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class SelectedChildRequest {
 
     @JsonProperty("child_id")
-    private String childId;
+    private Long childId;
 }
