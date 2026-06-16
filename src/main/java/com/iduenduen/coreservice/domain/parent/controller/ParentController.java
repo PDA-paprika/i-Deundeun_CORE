@@ -1,6 +1,7 @@
 package com.iduenduen.coreservice.domain.parent.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -51,6 +52,12 @@ public class ParentController {
     public ResponseEntity<ApiResponse<Void>> updateWizardProfile(@RequestBody WizardProfileRequest request) {
         parentService.updateWizardProfile(getCurrentParentId(), request);
         return ApiResponse.success(SuccessStatus.SUCCESS_200);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<Void>> withdraw() {
+        parentService.withdraw(getCurrentParentId());
+        return ApiResponse.success(SuccessStatus.SUCCESS_204);
     }
 
     @GetMapping("/holdings")
