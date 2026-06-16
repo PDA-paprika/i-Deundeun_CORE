@@ -31,7 +31,7 @@ class ParentServiceTest {
     private ParentService parentService;
 
     private Parent createParent() {
-        return Parent.builder()
+        Parent parent = Parent.builder()
                 .email("test@example.com")
                 .accountNumber("1234567890")
                 .passwordHash("hashed")
@@ -42,6 +42,8 @@ class ParentServiceTest {
                 .childCount(1)
                 .certFileUrl("https://example.com/cert.pdf")
                 .build();
+        ReflectionTestUtils.setField(parent, "id", 1L);
+        return parent;
     }
 
     @Test
