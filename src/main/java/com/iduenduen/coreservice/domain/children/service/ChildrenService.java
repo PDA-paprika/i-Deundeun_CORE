@@ -9,6 +9,7 @@ import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateRequest;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateResponse;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenDetailResponse;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenListResponse;
+import com.iduenduen.coreservice.domain.children.dto.ChildrenUpdateRequest;
 import com.iduenduen.coreservice.domain.children.entity.Children;
 import com.iduenduen.coreservice.domain.children.enums.CreatedVia;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
@@ -31,6 +32,21 @@ public class ChildrenService {
 	public ChildrenDetailResponse getChild(Long parentId, Long childId) {
 		Children child = childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+		return ChildrenDetailResponse.from(child);
+	}
+
+	@Transactional
+	public ChildrenDetailResponse updateChild(Long parentId, Long childId, ChildrenUpdateRequest request) {
+		Children child = childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+
+		if (request.name() != null && !request.name().equals(child.getName())
+			&& childrenRepository.existsByParentIdAndNameAndDeletedAtIsNullAndIdNot(parentId, request.name(), childId)) {
+			throw new GeneralException(ErrorStatus.CHILDREN_DUPLICATE_NAME);
+		}
+
+		child.update(request.name(), request.birthDate(), request.gender(),
+			request.securitiesAccount(), request.profileImageUrl());
 		return ChildrenDetailResponse.from(child);
 	}
 

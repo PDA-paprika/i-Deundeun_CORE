@@ -14,4 +14,6 @@ public interface ChildrenRepository extends JpaRepository<Children, Long> {
 	List<Children> findAllByParentIdAndDeletedAtIsNull(Long parentId);
 
 	Optional<Children> findByIdAndParentIdAndDeletedAtIsNull(Long id, Long parentId);
+
+	boolean existsByParentIdAndNameAndDeletedAtIsNullAndIdNot(Long parentId, String name, Long id);
 }

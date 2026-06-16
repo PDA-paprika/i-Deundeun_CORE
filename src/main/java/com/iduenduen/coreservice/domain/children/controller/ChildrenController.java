@@ -5,6 +5,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +19,7 @@ import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateRequest;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateResponse;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenDetailResponse;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenListResponse;
+import com.iduenduen.coreservice.domain.children.dto.ChildrenUpdateRequest;
 import com.iduenduen.coreservice.domain.children.service.ChildrenService;
 
 import jakarta.validation.Valid;
@@ -54,6 +56,20 @@ public class ChildrenController {
 		@AuthenticationPrincipal Long parentId,
 		@PathVariable Long childId) {
 		return ApiResponse.success(SuccessStatus.SUCCESS_200, childrenService.getChild(parentId, childId));
+	}
+
+	@Operation(
+		summary = "자녀 정보 수정",
+		description = """
+			자녀 정보를 수정합니다.
+
+			모든 필드는 선택사항이며, 전달된 필드만 업데이트됩니다. 이름 변경 시 같은 부모 아래 중복 이름은 허용되지 않습니다.""")
+	@PutMapping("/{childId}")
+	public ResponseEntity<ApiResponse<ChildrenDetailResponse>> updateChild(
+		@AuthenticationPrincipal Long parentId,
+		@PathVariable Long childId,
+		@RequestBody @Valid ChildrenUpdateRequest request) {
+		return ApiResponse.success(SuccessStatus.SUCCESS_200, childrenService.updateChild(parentId, childId, request));
 	}
 
 	@Operation(

@@ -86,4 +86,12 @@ public class Children extends BaseEntity {
 	public int getAge() {
 		return Period.between(this.birthDate, LocalDate.now()).getYears();
 	}
+
+	public void update(String name, LocalDate birthDate, Gender gender, String securitiesAccount, String profileImageUrl) {
+		if (name != null) this.name = name;
+		if (birthDate != null) this.birthDate = birthDate;
+		if (gender != null) this.gender = gender;
+		if (securitiesAccount != null) this.securitiesAccount = securitiesAccount;
+		if (profileImageUrl != null) this.profileImageUrl = profileImageUrl;
+	}
 }
