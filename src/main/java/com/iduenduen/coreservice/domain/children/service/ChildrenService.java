@@ -27,6 +27,10 @@ public class ChildrenService {
 		parentRepository.findByIdAndDeletedAtIsNull(parentId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.PARENT_NOT_FOUND));
 
+		if (childrenRepository.existsByParentIdAndNameAndDeletedAtIsNull(parentId, request.name())) {
+			throw new GeneralException(ErrorStatus.CHILDREN_DUPLICATE_NAME);
+		}
+
 		Children children = Children.builder()
 			.parentId(parentId)
 			.name(request.name())

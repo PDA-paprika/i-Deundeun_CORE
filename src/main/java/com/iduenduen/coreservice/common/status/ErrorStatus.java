@@ -24,7 +24,12 @@ public enum ErrorStatus implements BaseStatus {
     /**
      * Parent
      */
-    PARENT_NOT_FOUND("PARENT_404", HttpStatus.NOT_FOUND, "존재하지 않는 부모입니다.");
+    PARENT_NOT_FOUND("PARENT_404", HttpStatus.NOT_FOUND, "존재하지 않는 부모입니다."),
+
+    /**
+     * Children
+     */
+    CHILDREN_DUPLICATE_NAME("CHILDREN_409", HttpStatus.CONFLICT, "이미 등록된 자녀 이름입니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
