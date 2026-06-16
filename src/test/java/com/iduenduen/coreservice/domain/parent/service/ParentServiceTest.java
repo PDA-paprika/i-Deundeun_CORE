@@ -113,4 +113,28 @@ class ParentServiceTest {
         assertThat(parent.getEducationHeat()).isEqualTo(4);
         assertThat(parent.getDualIncome()).isTrue();
     }
+
+    @Test
+    void updateMe_존재하지_않으면_예외() {
+        given(parentRepository.findByIdAndDeletedAtIsNull("parent-1")).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> parentService.updateMe("parent-1", new ParentUpdateRequest()))
+                .isInstanceOf(GeneralException.class);
+    }
+
+    @Test
+    void updateSelectedChild_존재하지_않으면_예외() {
+        given(parentRepository.findByIdAndDeletedAtIsNull("parent-1")).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> parentService.updateSelectedChild("parent-1", new SelectedChildRequest()))
+                .isInstanceOf(GeneralException.class);
+    }
+
+    @Test
+    void updateWizardProfile_존재하지_않으면_예외() {
+        given(parentRepository.findByIdAndDeletedAtIsNull("parent-1")).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> parentService.updateWizardProfile("parent-1", new WizardProfileRequest()))
+                .isInstanceOf(GeneralException.class);
+    }
 }

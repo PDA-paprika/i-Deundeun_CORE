@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
