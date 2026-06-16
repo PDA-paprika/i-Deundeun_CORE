@@ -61,11 +61,11 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest request) {
-        if (request.getAccountNumber() == null || request.getPassword() == null) {
+        if (request.getEmail() == null || request.getPassword() == null) {
             throw new GeneralException(ErrorStatus.BAD_REQUEST);
         }
 
-        Parent parent = parentRepository.findByAccountNumberAndDeletedAtIsNull(request.getAccountNumber())
+        Parent parent = parentRepository.findByEmailAndDeletedAtIsNull(request.getEmail())
                 .orElseThrow(() -> new GeneralException(ErrorStatus.INVALID_CREDENTIALS));
 
         if (!passwordEncoder.matches(request.getPassword(), parent.getPasswordHash())) {

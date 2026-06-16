@@ -1,7 +1,5 @@
 package com.iduenduen.coreservice.domain.auth.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -9,8 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LoginRequest {
 
-    @JsonProperty("account_number")
-    private String accountNumber;
+    private String email;
 
     private String password;
 }

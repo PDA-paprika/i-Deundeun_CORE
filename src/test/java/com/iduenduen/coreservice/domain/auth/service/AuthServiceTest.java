@@ -111,10 +111,10 @@ class AuthServiceTest {
     void login_성공() {
         Parent parent = createParent();
         LoginRequest request = new LoginRequest();
-        ReflectionTestUtils.setField(request, "accountNumber", "1234567890");
+        ReflectionTestUtils.setField(request, "email", "test@example.com");
         ReflectionTestUtils.setField(request, "password", "mypassword123");
 
-        given(parentRepository.findByAccountNumberAndDeletedAtIsNull("1234567890")).willReturn(Optional.of(parent));
+        given(parentRepository.findByEmailAndDeletedAtIsNull("test@example.com")).willReturn(Optional.of(parent));
         given(passwordEncoder.matches("mypassword123", "encoded-password")).willReturn(true);
         given(jwtProvider.createAccessToken(1L)).willReturn("access-token");
 
@@ -125,12 +125,12 @@ class AuthServiceTest {
     }
 
     @Test
-    void login_존재하지_않는_계좌번호면_예외() {
+    void login_존재하지_않는_이메일이면_예외() {
         LoginRequest request = new LoginRequest();
-        ReflectionTestUtils.setField(request, "accountNumber", "0000000000");
+        ReflectionTestUtils.setField(request, "email", "unknown@example.com");
         ReflectionTestUtils.setField(request, "password", "mypassword123");
 
-        given(parentRepository.findByAccountNumberAndDeletedAtIsNull("0000000000")).willReturn(Optional.empty());
+        given(parentRepository.findByEmailAndDeletedAtIsNull("unknown@example.com")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOf(GeneralException.class);
@@ -140,10 +140,10 @@ class AuthServiceTest {
     void login_비밀번호가_틀리면_예외() {
         Parent parent = createParent();
         LoginRequest request = new LoginRequest();
-        ReflectionTestUtils.setField(request, "accountNumber", "1234567890");
+        ReflectionTestUtils.setField(request, "email", "test@example.com");
         ReflectionTestUtils.setField(request, "password", "wrong-password");
 
-        given(parentRepository.findByAccountNumberAndDeletedAtIsNull("1234567890")).willReturn(Optional.of(parent));
+        given(parentRepository.findByEmailAndDeletedAtIsNull("test@example.com")).willReturn(Optional.of(parent));
         given(passwordEncoder.matches("wrong-password", "encoded-password")).willReturn(false);
 
         assertThatThrownBy(() -> authService.login(request))
