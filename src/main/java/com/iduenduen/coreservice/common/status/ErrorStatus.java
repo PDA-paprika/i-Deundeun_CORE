@@ -26,8 +26,8 @@ public enum ErrorStatus implements BaseStatus {
      * Auth
      */
     INVALID_CREDENTIALS("AUTH_401", HttpStatus.UNAUTHORIZED, "계좌번호 또는 비밀번호가 올바르지 않습니다."),
-    DUPLICATE_EMAIL("AUTH_409", HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
-    DUPLICATE_ACCOUNT_NUMBER("AUTH_409", HttpStatus.CONFLICT, "이미 사용 중인 계좌번호입니다.");
+    DUPLICATE_EMAIL("AUTH_409_01", HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
+    DUPLICATE_ACCOUNT_NUMBER("AUTH_409_02", HttpStatus.CONFLICT, "이미 사용 중인 계좌번호입니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
