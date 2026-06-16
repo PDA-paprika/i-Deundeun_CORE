@@ -1,20 +1,17 @@
 package com.iduenduen.coreservice.domain.parent.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.response.ApiResponse;
-import com.iduenduen.coreservice.common.security.JwtProvider;
-import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.parent.dto.ParentResponse;
 import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateRequest;
@@ -32,59 +29,60 @@ import lombok.RequiredArgsConstructor;
 public class ParentController {
 
     private final ParentService parentService;
-    private final JwtProvider jwtProvider;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<ParentResponse>> getMe(
-            @RequestHeader("Authorization") String authorization) {
-        ParentResponse response = parentService.getMe(resolveParentId(authorization));
+    public ResponseEntity<ApiResponse<ParentResponse>> getMe() {
+        ParentResponse response = parentService.getMe(getCurrentParentId());
         return ApiResponse.success(SuccessStatus.SUCCESS_200, response);
     }
 
     @PutMapping
-    public ResponseEntity<ApiResponse<ParentUpdateResponse>> updateMe(
-            @RequestHeader("Authorization") String authorization,
-            @RequestBody ParentUpdateRequest request) {
-        ParentUpdateResponse response = parentService.updateMe(resolveParentId(authorization), request);
+    public ResponseEntity<ApiResponse<ParentUpdateResponse>> updateMe(@RequestBody ParentUpdateRequest request) {
+        ParentUpdateResponse response = parentService.updateMe(getCurrentParentId(), request);
         return ApiResponse.success(SuccessStatus.SUCCESS_200, response);
     }
 
     @PutMapping("/selected-child")
     public ResponseEntity<ApiResponse<SelectedChildResponse>> updateSelectedChild(
-            @RequestHeader("Authorization") String authorization,
             @RequestBody SelectedChildRequest request) {
-        SelectedChildResponse response = parentService.updateSelectedChild(resolveParentId(authorization), request);
+        SelectedChildResponse response = parentService.updateSelectedChild(getCurrentParentId(), request);
         return ApiResponse.success(SuccessStatus.SUCCESS_200, response);
     }
 
     @PatchMapping("/wizard-profile")
-    public ResponseEntity<ApiResponse<Void>> updateWizardProfile(
-            @RequestHeader("Authorization") String authorization,
-            @RequestBody WizardProfileRequest request) {
-        parentService.updateWizardProfile(resolveParentId(authorization), request);
+    public ResponseEntity<ApiResponse<Void>> updateWizardProfile(@RequestBody WizardProfileRequest request) {
+        parentService.updateWizardProfile(getCurrentParentId(), request);
         return ApiResponse.success(SuccessStatus.SUCCESS_200);
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> withdraw(
-            @RequestHeader("Authorization") String authorization) {
-        parentService.withdraw(resolveParentId(authorization));
+    public ResponseEntity<Void> withdraw() {
+        parentService.withdraw(getCurrentParentId());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/holdings")
     public ResponseEntity<ApiResponse<Object>> getHoldings(
-            @RequestHeader("Authorization") String authorization,
             @RequestParam(required = false, defaultValue = "eval_amount_desc") String sort,
             @RequestParam(required = false) Integer limit) {
-        // TODO: ETF Server 연동 필요 (account_etf_holdings + etfs + etf_candles_1d)
+        // TODO: ETF Server 연동 필요
         return ApiResponse.success(SuccessStatus.SUCCESS_200, null);
     }
 
-    private Long resolveParentId(String authorization) {
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
+    private Long getCurrentParentId() {
+        // TODO: 인증 구현 후 SecurityContext에서 로그인한 parent id로 교체
+        var attrs = (org.springframework.web.context.request.ServletRequestAttributes)
+                org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        if (attrs == null) {
+            throw new com.iduenduen.coreservice.common.exception.GeneralException(
+                    com.iduenduen.coreservice.common.status.ErrorStatus.UNAUTHORIZED);
         }
-        return jwtProvider.getParentId(authorization.substring("Bearer ".length()));
+
+        String parentId = attrs.getRequest().getHeader("X-Parent-Id");
+        if (parentId == null || parentId.isBlank()) {
+            throw new com.iduenduen.coreservice.common.exception.GeneralException(
+                    com.iduenduen.coreservice.common.status.ErrorStatus.UNAUTHORIZED);
+        }
+        return Long.valueOf(parentId);
     }
 }

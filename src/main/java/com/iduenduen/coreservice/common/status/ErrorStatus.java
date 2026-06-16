@@ -36,6 +36,7 @@ public enum ErrorStatus implements BaseStatus {
      * Auth
      */
     INVALID_CREDENTIALS("AUTH_401", HttpStatus.UNAUTHORIZED, "계좌번호 또는 비밀번호가 올바르지 않습니다."),
+    INVALID_TOKEN("AUTH_401_02", HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     DUPLICATE_EMAIL("AUTH_409_01", HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
     DUPLICATE_ACCOUNT_NUMBER("AUTH_409_02", HttpStatus.CONFLICT, "이미 사용 중인 계좌번호입니다.");
 

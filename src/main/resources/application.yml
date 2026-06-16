@@ -4,8 +4,8 @@ server:
 spring:
   application:
     name: core-service
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
-jwt:
-  secret: ${JWT_SECRET:local-dev-only-secret-key-please-change-32bytes-min}
-  access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS:3600000}
-#배포시 별도 값 주입 필요
