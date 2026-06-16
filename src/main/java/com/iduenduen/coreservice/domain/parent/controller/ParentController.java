@@ -63,6 +63,18 @@ public class ParentController {
 
     private Long getCurrentParentId() {
         // TODO: 인증 구현 후 SecurityContext에서 로그인한 parent id로 교체
-        throw new UnsupportedOperationException("인증이 아직 구현되지 않았습니다.");
+        var attrs = (org.springframework.web.context.request.ServletRequestAttributes)
+                org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        if (attrs == null) {
+            throw new com.iduenduen.coreservice.common.exception.GeneralException(
+                    com.iduenduen.coreservice.common.status.ErrorStatus.UNAUTHORIZED);
+        }
+
+        String parentId = attrs.getRequest().getHeader("X-Parent-Id");
+        if (parentId == null || parentId.isBlank()) {
+            throw new com.iduenduen.coreservice.common.exception.GeneralException(
+                    com.iduenduen.coreservice.common.status.ErrorStatus.UNAUTHORIZED);
+        }
+        return Long.valueOf(parentId);
     }
 }
