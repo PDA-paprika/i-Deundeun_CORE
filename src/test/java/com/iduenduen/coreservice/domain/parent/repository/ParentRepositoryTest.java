@@ -12,6 +12,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 
 @DataJpaTest
+@org.springframework.context.annotation.Import(com.iduenduen.coreservice.config.JpaAuditingConfig.class)
 class ParentRepositoryTest {
 
     @Autowired
