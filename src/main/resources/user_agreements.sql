@@ -6,7 +6,7 @@ CREATE TABLE `user_agreements`
     `agreed`         BOOLEAN     NOT NULL,
     `agreed_at`      TIMESTAMP   NULL,
     `created_at`     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`     TIMESTAMP   NULL     DEFAULT NULL,
+    `updated_at`     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT `fk_user_agreements_parent`
         FOREIGN KEY (`parent_id`) REFERENCES `parents` (`id`)
 );
