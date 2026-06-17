@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
+import com.iduenduen.coreservice.domain.children.dto.AllowanceConnectResponse;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateRequest;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateResponse;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenDetailResponse;
@@ -82,6 +83,15 @@ public class ChildrenController {
 		@PathVariable Long childId,
 		@RequestBody @Valid ChildrenUpdateRequest request) {
 		return ApiResponse.success(SuccessStatus.SUCCESS_200, childrenService.updateChild(parentId, childId, request));
+	}
+
+	@Operation(summary = "아동수당 연결", description = "자녀의 증권 계좌를 아동수당 수령 계좌로 연결합니다.")
+	@PostMapping("/{childId}/allowance/connect")
+	public ResponseEntity<ApiResponse<AllowanceConnectResponse>> connectAllowance(
+		@AuthenticationPrincipal Long parentId,
+		@PathVariable Long childId) {
+		return ApiResponse.success(SuccessStatus.CHILDREN_ALLOWANCE_CONNECT_SUCCESS,
+			childrenService.connectAllowance(parentId, childId));
 	}
 
 	@Operation(
