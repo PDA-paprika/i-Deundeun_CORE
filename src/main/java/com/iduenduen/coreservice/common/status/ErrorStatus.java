@@ -45,7 +45,12 @@ public enum ErrorStatus implements BaseStatus {
     /**
      * Onboarding
      */
-    REQUIRED_AGREEMENTS_NOT_AGREED("ONBOARD_400", HttpStatus.BAD_REQUEST, "필수 약관에 동의해야 합니다.");
+    REQUIRED_AGREEMENTS_NOT_AGREED("ONBOARD_400", HttpStatus.BAD_REQUEST, "필수 약관에 동의해야 합니다."),
+
+    /**
+     * Upload
+     */
+    INVALID_FILE_TYPE("UPLOAD_400", HttpStatus.BAD_REQUEST, "허용되지 않는 파일 형식입니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
