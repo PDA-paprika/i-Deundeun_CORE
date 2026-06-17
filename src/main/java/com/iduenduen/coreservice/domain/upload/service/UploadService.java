@@ -59,7 +59,11 @@ public class UploadService {
     }
 
     private void validateRequest(PresignedUrlRequest request) {
-        if (request.getFileType() == null || request.getContentType() == null || request.getFileName() == null) {
+        if (request.getFileType() == null || request.getContentType() == null || request.getFileName() == null
+                || request.getFileType().isBlank() || request.getContentType().isBlank() || request.getFileName().isBlank()) {
+            throw new GeneralException(ErrorStatus.BAD_REQUEST);
+        }
+        if (request.getFileName().contains("/") || request.getFileName().contains("\\") || request.getFileName().contains("..")) {
             throw new GeneralException(ErrorStatus.BAD_REQUEST);
         }
         Set<String> allowed = switch (request.getFileType()) {
