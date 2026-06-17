@@ -72,7 +72,7 @@ public class JwtProvider {
         return refreshTokenExpirationMs;
     }
 
-private String buildToken(Long parentId, long expirationMs) {
+    private String buildToken(Long parentId, long expirationMs) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(String.valueOf(parentId))
