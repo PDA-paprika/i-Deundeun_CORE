@@ -22,7 +22,7 @@ public class UploadController {
     private final UploadService uploadService;
 
     @PostMapping("/presigned-url")
-    public ResponseEntity<ApiResponse<PresignedUrlResponse>> getPresignedUrl(@RequestBody PresignedUrlRequest request) {
+    public ResponseEntity<ApiResponse<PresignedUrlResponse>> getPresignedUrl(@RequestBody @jakarta.validation.Valid PresignedUrlRequest request) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, uploadService.generatePresignedUrl(request));
     }
 }
