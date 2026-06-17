@@ -94,7 +94,7 @@ public class ChildrenController {
 		return ApiResponse.success(SuccessStatus.CHILDREN_ALLOWANCE_CONNECT_SUCCESS);
 	}
 
-	@Operation(summary = "아동수당 연결 상태 조회", description = "자녀의 아동수당 연결 여부와 연결된 계좌 번호를 조회합니다.")
+	@Operation(summary = "아동수당 연결 상태 조회", description = "자녀의 아동수당 연결 여부를 조회합니다.")
 	@GetMapping("/{childId}/allowance")
 	public ResponseEntity<ApiResponse<AllowanceStatusResponse>> getAllowanceStatus(
 		@AuthenticationPrincipal Long parentId,
