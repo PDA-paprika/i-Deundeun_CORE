@@ -3,6 +3,7 @@ package com.iduenduen.coreservice.domain.onboarding.entity;
 import java.time.LocalDateTime;
 
 import com.iduenduen.coreservice.common.base.BaseEntity;
+import com.iduenduen.coreservice.domain.onboarding.enums.AgreementType;
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 
 import jakarta.persistence.Column;
@@ -44,9 +45,9 @@ public class UserAgreement extends BaseEntity {
     private LocalDateTime agreedAt;
 
     @Builder
-    public UserAgreement(Parent parent, String agreementType, Boolean agreed) {
+    public UserAgreement(Parent parent, AgreementType agreementType, Boolean agreed) {
         this.parent = parent;
-        this.agreementType = agreementType;
+        this.agreementType = agreementType.getCode();
         this.agreed = agreed;
         this.agreedAt = agreed ? LocalDateTime.now() : null;
     }

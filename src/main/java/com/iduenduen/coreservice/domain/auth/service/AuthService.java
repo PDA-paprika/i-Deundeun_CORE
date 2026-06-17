@@ -1,5 +1,7 @@
 package com.iduenduen.coreservice.domain.auth.service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -16,6 +18,9 @@ import com.iduenduen.coreservice.domain.auth.dto.LoginRequest;
 import com.iduenduen.coreservice.domain.auth.dto.LoginResponse;
 import com.iduenduen.coreservice.domain.auth.dto.SignupRequest;
 import com.iduenduen.coreservice.domain.auth.dto.SignupResponse;
+import com.iduenduen.coreservice.domain.onboarding.entity.UserAgreement;
+import com.iduenduen.coreservice.domain.onboarding.enums.AgreementType;
+import com.iduenduen.coreservice.domain.onboarding.repository.UserAgreementRepository;
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
 
@@ -27,7 +32,12 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class AuthService {
 
+    private static final List<AgreementType> REQUIRED_AGREEMENT_TYPES = Arrays.stream(AgreementType.values())
+            .filter(AgreementType::isRequired)
+            .toList();
+
     private final ParentRepository parentRepository;
+    private final UserAgreementRepository userAgreementRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final StringRedisTemplate redisTemplate;
@@ -40,6 +50,8 @@ public class AuthService {
                 || request.getCertFileUrl() == null) {
             throw new GeneralException(ErrorStatus.BAD_REQUEST);
         }
+
+        validateAgreements(request.getAgreements());
 
         if (parentRepository.existsByEmail(request.getEmail())) {
             throw new GeneralException(ErrorStatus.DUPLICATE_EMAIL);
@@ -61,7 +73,31 @@ public class AuthService {
                 .build();
 
         Parent saved = parentRepository.save(parent);
+
+        if (request.getAgreements() != null) {
+            List<UserAgreement> agreements = request.getAgreements().stream()
+                    .map(a -> UserAgreement.builder()
+                            .parent(saved)
+                            .agreementType(a.getType())
+                            .agreed(a.getAgreed())
+                            .build())
+                    .toList();
+            userAgreementRepository.saveAll(agreements);
+        }
+
         return SignupResponse.builder().parentId(saved.getId()).build();
+    }
+
+    private void validateAgreements(List<SignupRequest.AgreementItem> agreements) {
+        if (agreements == null || agreements.isEmpty()) {
+            throw new GeneralException(ErrorStatus.REQUIRED_AGREEMENTS_NOT_AGREED);
+        }
+        boolean allRequired = REQUIRED_AGREEMENT_TYPES.stream()
+                .allMatch(type -> agreements.stream()
+                        .anyMatch(a -> type.equals(a.getType()) && Boolean.TRUE.equals(a.getAgreed())));
+        if (!allRequired) {
+            throw new GeneralException(ErrorStatus.REQUIRED_AGREEMENTS_NOT_AGREED);
+        }
     }
 
     @Transactional
