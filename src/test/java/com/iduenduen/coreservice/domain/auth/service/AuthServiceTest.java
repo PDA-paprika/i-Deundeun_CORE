@@ -12,27 +12,30 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.security.JwtProvider;
 import com.iduenduen.coreservice.domain.auth.dto.LoginRequest;
+import com.iduenduen.coreservice.domain.auth.dto.LoginResponse;
 import com.iduenduen.coreservice.domain.auth.dto.SignupRequest;
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-    @Mock
-    private ParentRepository parentRepository;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @Mock
-    private JwtProvider jwtProvider;
+    @Mock private ParentRepository parentRepository;
+    @Mock private PasswordEncoder passwordEncoder;
+    @Mock private JwtProvider jwtProvider;
+    @Mock private StringRedisTemplate redisTemplate;
+    @Mock private ValueOperations<String, String> valueOperations;
+    @Mock private HttpServletResponse httpServletResponse;
 
     @InjectMocks
     private AuthService authService;
@@ -117,11 +120,13 @@ class AuthServiceTest {
         given(parentRepository.findByEmailAndDeletedAtIsNull("test@example.com")).willReturn(Optional.of(parent));
         given(passwordEncoder.matches("mypassword123", "encoded-password")).willReturn(true);
         given(jwtProvider.createAccessToken(1L)).willReturn("access-token");
+        given(jwtProvider.createRefreshToken(1L)).willReturn("refresh-token");
+        given(jwtProvider.getRefreshTokenExpirationMs()).willReturn(1_209_600_000L);
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
 
-        var response = authService.login(request);
+        LoginResponse response = authService.login(request, httpServletResponse);
 
         assertThat(response.getAccessToken()).isEqualTo("access-token");
-        assertThat(response.getParentId()).isEqualTo(1L);
     }
 
     @Test
@@ -132,7 +137,7 @@ class AuthServiceTest {
 
         given(parentRepository.findByEmailAndDeletedAtIsNull("unknown@example.com")).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> authService.login(request))
+        assertThatThrownBy(() -> authService.login(request, httpServletResponse))
                 .isInstanceOf(GeneralException.class);
     }
 
@@ -146,7 +151,7 @@ class AuthServiceTest {
         given(parentRepository.findByEmailAndDeletedAtIsNull("test@example.com")).willReturn(Optional.of(parent));
         given(passwordEncoder.matches("wrong-password", "encoded-password")).willReturn(false);
 
-        assertThatThrownBy(() -> authService.login(request))
+        assertThatThrownBy(() -> authService.login(request, httpServletResponse))
                 .isInstanceOf(GeneralException.class);
     }
 
@@ -154,7 +159,7 @@ class AuthServiceTest {
     void login_필수값이_없으면_예외() {
         LoginRequest request = new LoginRequest();
 
-        assertThatThrownBy(() -> authService.login(request))
+        assertThatThrownBy(() -> authService.login(request, httpServletResponse))
                 .isInstanceOf(GeneralException.class);
     }
 
