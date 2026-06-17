@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.iduenduen.coreservice.domain.onboarding.entity.UserAgreement;
 
 public interface UserAgreementRepository extends JpaRepository<UserAgreement, Long> {
-    List<UserAgreement> findAllByParentId(Long parentId);
+    List<UserAgreement> findAllByParent_Id(Long parentId);
 }
