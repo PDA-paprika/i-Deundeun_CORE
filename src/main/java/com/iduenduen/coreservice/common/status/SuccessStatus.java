@@ -22,7 +22,8 @@ public enum SuccessStatus implements BaseStatus {
      * Children
      */
     CHILDREN_REGISTER_SUCCESS("CHILDREN_201", HttpStatus.CREATED, "자녀 등록이 완료되었습니다."),
-    CHILDREN_DELETE_SUCCESS("CHILDREN_200", HttpStatus.OK, "자녀가 삭제되었습니다.");
+    CHILDREN_DELETE_SUCCESS("CHILDREN_200", HttpStatus.OK, "자녀가 삭제되었습니다."),
+    CHILDREN_ALLOWANCE_CONNECT_SUCCESS("CHILDREN_ALLOWANCE_200", HttpStatus.OK, "아동수당 연결이 완료되었습니다.");
 
     private final String code;
     private final HttpStatus httpStatus;

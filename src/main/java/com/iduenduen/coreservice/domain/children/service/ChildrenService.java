@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
+import com.iduenduen.coreservice.domain.children.dto.AllowanceStatusResponse;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateRequest;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateResponse;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenDetailResponse;
@@ -55,6 +56,25 @@ public class ChildrenService {
 		child.update(request.name(), request.birthDate(), request.gender(),
 			request.securitiesAccount(), request.profileImageUrl());
 		return ChildrenDetailResponse.from(child);
+	}
+
+	@Transactional
+	public void connectAllowance(Long parentId, Long childId) {
+		Children child = childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+
+		if (child.isAllowanceLinked()) {
+			throw new GeneralException(ErrorStatus.CHILDREN_ALLOWANCE_ALREADY_LINKED);
+		}
+
+		child.linkAllowance();
+	}
+
+	public AllowanceStatusResponse getAllowanceStatus(Long parentId, Long childId) {
+		Children child = childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+
+		return new AllowanceStatusResponse(child.isAllowanceLinked());
 	}
 
 	@Transactional

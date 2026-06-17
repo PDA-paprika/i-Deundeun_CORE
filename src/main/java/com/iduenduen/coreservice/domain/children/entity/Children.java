@@ -87,6 +87,10 @@ public class Children extends BaseEntity {
 		return Period.between(this.birthDate, LocalDate.now()).getYears();
 	}
 
+	public void linkAllowance() {
+		this.allowanceLinked = true;
+	}
+
 	public void softDelete() {
 		this.deletedAt = LocalDateTime.now();
 	}
