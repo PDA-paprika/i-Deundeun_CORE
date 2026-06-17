@@ -27,7 +27,7 @@ public class UploadService {
     private final S3Presigner s3Presigner;
     private final String bucket;
 
-    public UploadService(S3Presigner s3Presigner, @Value("${cloud.aws.s3.bucket}") String bucket) {
+    public UploadService(S3Presigner s3Presigner, @Value("${cloud.aws.s3.bucket:}") String bucket) {
         this.s3Presigner = s3Presigner;
         this.bucket = bucket;
     }
