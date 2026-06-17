@@ -74,16 +74,14 @@ public class AuthService {
 
         Parent saved = parentRepository.save(parent);
 
-        if (request.getAgreements() != null) {
-            List<UserAgreement> agreements = request.getAgreements().stream()
-                    .map(a -> UserAgreement.builder()
-                            .parent(saved)
-                            .agreementType(a.getType())
-                            .agreed(a.getAgreed())
-                            .build())
-                    .toList();
-            userAgreementRepository.saveAll(agreements);
-        }
+        List<UserAgreement> agreements = request.getAgreements().stream()
+                .map(a -> UserAgreement.builder()
+                        .parent(saved)
+                        .agreementType(a.getType())
+                        .agreed(a.getAgreed())
+                        .build())
+                .toList();
+        userAgreementRepository.saveAll(agreements);
 
         return SignupResponse.builder().parentId(saved.getId()).build();
     }
