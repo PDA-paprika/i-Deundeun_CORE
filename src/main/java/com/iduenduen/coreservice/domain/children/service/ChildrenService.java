@@ -5,7 +5,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
-import com.iduenduen.coreservice.domain.children.dto.AllowanceConnectResponse;
 import com.iduenduen.coreservice.domain.children.dto.AllowanceStatusResponse;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateRequest;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateResponse;
@@ -60,7 +59,7 @@ public class ChildrenService {
 	}
 
 	@Transactional
-	public AllowanceConnectResponse connectAllowance(Long parentId, Long childId) {
+	public void connectAllowance(Long parentId, Long childId) {
 		Children child = childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
 
@@ -69,14 +68,13 @@ public class ChildrenService {
 		}
 
 		child.linkAllowance();
-		return new AllowanceConnectResponse(child.getSecuritiesAccount());
 	}
 
 	public AllowanceStatusResponse getAllowanceStatus(Long parentId, Long childId) {
 		Children child = childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
 
-		return new AllowanceStatusResponse(child.isAllowanceLinked(), child.getSecuritiesAccount());
+		return new AllowanceStatusResponse(child.isAllowanceLinked());
 	}
 
 	@Transactional
