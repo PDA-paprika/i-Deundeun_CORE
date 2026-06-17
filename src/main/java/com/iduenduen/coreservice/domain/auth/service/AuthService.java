@@ -92,6 +92,9 @@ public class AuthService {
         if (agreements == null || agreements.isEmpty()) {
             throw new GeneralException(ErrorStatus.REQUIRED_AGREEMENTS_NOT_AGREED);
         }
+        if (agreements.stream().anyMatch(a -> a == null || a.getType() == null || a.getAgreed() == null)) {
+            throw new GeneralException(ErrorStatus.BAD_REQUEST);
+        }
         boolean allRequired = REQUIRED_AGREEMENT_TYPES.stream()
                 .allMatch(type -> agreements.stream()
                         .anyMatch(a -> type.equals(a.getType()) && Boolean.TRUE.equals(a.getAgreed())));
