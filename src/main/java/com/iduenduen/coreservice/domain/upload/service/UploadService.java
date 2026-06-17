@@ -49,7 +49,7 @@ public class UploadService {
                         .putObjectRequest(putObjectRequest)
                         .build());
 
-        String fileUrl = "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + key;
+        String fileUrl = "https://" + bucket + ".s3.amazonaws.com/" + key;
 
         return PresignedUrlResponse.builder()
                 .uploadUrl(presigned.url().toString())
