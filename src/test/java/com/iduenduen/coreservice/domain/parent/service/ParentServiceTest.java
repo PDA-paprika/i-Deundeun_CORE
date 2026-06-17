@@ -91,11 +91,11 @@ class ParentServiceTest {
         given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(parent));
 
         SelectedChildRequest request = new SelectedChildRequest();
-        ReflectionTestUtils.setField(request, "childId", "child-1");
+        ReflectionTestUtils.setField(request, "childId", 1L);
 
         var response = parentService.updateSelectedChild(1L, request);
 
-        assertThat(response.getSelectedChildId()).isEqualTo("child-1");
+        assertThat(response.getSelectedChildId()).isEqualTo(1L);
     }
 
     @Test

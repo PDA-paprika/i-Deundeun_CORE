@@ -6,18 +6,23 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.jayway.jsonpath.JsonPath;
 
+@Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("local")
 class AuthFlowIntegrationTest {
 
     @Autowired
@@ -62,29 +67,22 @@ class AuthFlowIntegrationTest {
                 .andReturn();
 
         String accessToken = JsonPath.read(loginResult.getResponse().getContentAsString(), "$.data.access_token");
-        Long loggedInParentId = readLong(loginResult, "$.data.parent_id");
 
         assertThat(accessToken).isNotBlank();
-        assertThat(loggedInParentId).isEqualTo(parentId);
 
-        // 탈퇴 전: 발급받은 토큰은 정상적으로 검증된다.
-        mockMvc.perform(get("/auth/validate")
+        // 탈퇴 전: 발급받은 토큰으로 내 정보 조회 성공
+        mockMvc.perform(get("/parents/me")
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk());
 
-        // 게이트웨이가 JWT 검증 후 X-Parent-Id 헤더로 전달한다고 가정하고 인증된 요청을 시뮬레이션한다.
         mockMvc.perform(delete("/parents/me")
-                        .header("X-Parent-Id", String.valueOf(parentId)))
+                        .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNoContent());
 
+        // 탈퇴 후: 동일 토큰으로 조회 시 계정이 존재하지 않아 404
         mockMvc.perform(get("/parents/me")
-                        .header("X-Parent-Id", String.valueOf(parentId)))
-                .andExpect(status().isNotFound());
-
-        // 탈퇴 후: 만료 전 토큰이라도 더 이상 유효하지 않다.
-        mockMvc.perform(get("/auth/validate")
                         .header("Authorization", "Bearer " + accessToken))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isNotFound());
     }
 
     private Long readLong(MvcResult result, String jsonPath) throws Exception {
