@@ -1,7 +1,5 @@
 package com.iduenduen.coreservice.domain.goals.controller;
 
-import java.time.LocalDate;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.iduenduen.coreservice.common.response.ApiResponse;
@@ -20,6 +17,7 @@ import com.iduenduen.coreservice.domain.goals.dto.GoalCreateRequest;
 import com.iduenduen.coreservice.domain.goals.dto.GoalCreateResponse;
 import com.iduenduen.coreservice.domain.goals.dto.GoalDetailResponse;
 import com.iduenduen.coreservice.domain.goals.dto.GoalListResponse;
+import com.iduenduen.coreservice.domain.goals.dto.GoalPreviewRequest;
 import com.iduenduen.coreservice.domain.goals.dto.GoalPreviewResponse;
 import com.iduenduen.coreservice.domain.goals.dto.GoalUpdateRequest;
 import com.iduenduen.coreservice.domain.goals.dto.GoalUpdateResponse;
@@ -92,9 +90,8 @@ public class GoalController {
         @AuthenticationPrincipal Long parentId,
         @PathVariable Long childId,
         @PathVariable Long goalId,
-        @RequestParam(required = false) Long targetAmount,
-        @RequestParam(required = false) LocalDate targetDate) {
+        @RequestBody GoalPreviewRequest request) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200,
-            goalService.previewGoal(parentId, childId, goalId, targetAmount, targetDate));
+            goalService.previewGoal(parentId, childId, goalId, request.targetAmount(), request.targetDate()));
     }
 }

@@ -8,7 +8,10 @@ import com.iduenduen.coreservice.common.base.BaseEntity;
 import com.iduenduen.coreservice.domain.goals.enums.GoalStatus;
 import com.iduenduen.coreservice.domain.goals.enums.GoalType;
 
+import com.iduenduen.coreservice.domain.goals.converter.GoalTypeConverter;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -37,6 +40,7 @@ public class Goal extends BaseEntity {
     @Column(name = "child_id", nullable = false)
     private Long childId;
 
+    @Convert(converter = GoalTypeConverter.class)
     @Column(name = "goal_type1", nullable = false)
     private GoalType goalType1;
 

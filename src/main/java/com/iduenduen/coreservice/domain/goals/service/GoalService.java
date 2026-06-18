@@ -108,7 +108,7 @@ public class GoalService {
     }
 
     private BigDecimal calculateRate(Long currentAmount, Long targetAmount) {
-        if (targetAmount == null || targetAmount == 0) return BigDecimal.ZERO;
+        if (targetAmount == null || targetAmount <= 0) return BigDecimal.ZERO;
         return BigDecimal.valueOf(currentAmount)
             .multiply(BigDecimal.valueOf(100))
             .divide(BigDecimal.valueOf(targetAmount), 2, RoundingMode.HALF_UP);

@@ -54,10 +54,15 @@ public record GoalDetailResponse(
             goal.getTargetAmount(),
             goal.getTargetDate(),
             goal.getAchievedPct(),
-            "D-" + ChronoUnit.DAYS.between(LocalDate.now(), goal.getTargetDate()),
+            remainingPeriod(goal.getTargetDate()),
             goal.getRecommendedAmount(),
             goal.getRecommendationNote(),
             goal.getStatus()
         );
+    }
+
+    private static String remainingPeriod(LocalDate targetDate) {
+        long days = ChronoUnit.DAYS.between(LocalDate.now(), targetDate);
+        return days < 0 ? "만료" : "D-" + days;
     }
 }
