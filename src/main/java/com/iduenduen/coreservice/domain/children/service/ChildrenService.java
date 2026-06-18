@@ -1,5 +1,7 @@
 package com.iduenduen.coreservice.domain.children.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +15,7 @@ import com.iduenduen.coreservice.domain.children.dto.ChildrenListResponse;
 import com.iduenduen.coreservice.domain.children.dto.ChildrenUpdateRequest;
 import com.iduenduen.coreservice.domain.children.entity.Children;
 import com.iduenduen.coreservice.domain.children.enums.CreatedVia;
+import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
 import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
 
@@ -25,9 +28,19 @@ public class ChildrenService {
 
 	private final ChildrenRepository childrenRepository;
 	private final ParentRepository parentRepository;
+	private final AccountRepository accountRepository;
 
 	public ChildrenListResponse getChildren(Long parentId) {
-		return ChildrenListResponse.from(childrenRepository.findAllByParentIdAndDeletedAtIsNull(parentId));
+		List<ChildrenListResponse.ChildItem> items = childrenRepository.findAllByParentIdAndDeletedAtIsNull(parentId)
+			.stream()
+			.map(child -> {
+				Long accountId = accountRepository.findByChildId(child.getId())
+					.map(account -> account.getAccountId())
+					.orElse(null);
+				return ChildrenListResponse.ChildItem.from(child, accountId);
+			})
+			.toList();
+		return new ChildrenListResponse(items);
 	}
 
 	public ChildrenDetailResponse getChild(Long parentId, Long childId) {

@@ -13,6 +13,9 @@ public record ChildrenListResponse(List<ChildItem> children) {
         @JsonProperty("child_id")
         Long childId,
 
+        @JsonProperty("account_id")
+        Long accountId,
+
         String name,
 
         @JsonProperty("birth_date")
@@ -31,9 +34,10 @@ public record ChildrenListResponse(List<ChildItem> children) {
         @JsonProperty("allowance_linked")
         boolean allowanceLinked
     ) {
-        public static ChildItem from(Children children) {
+        public static ChildItem from(Children children, Long accountId) {
             return new ChildItem(
                 children.getId(),
+                accountId,
                 children.getName(),
                 children.getBirthDate(),
                 children.getAge(),
@@ -43,9 +47,5 @@ public record ChildrenListResponse(List<ChildItem> children) {
                 children.isAllowanceLinked()
             );
         }
-    }
-
-    public static ChildrenListResponse from(List<Children> childrenList) {
-        return new ChildrenListResponse(childrenList.stream().map(ChildItem::from).toList());
     }
 }
