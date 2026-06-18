@@ -39,6 +39,12 @@ public class GiftContract extends BaseEntity {
 	@Column(name = "child_id", nullable = false)
 	private Long childId;
 
+	@Column(name = "from_account_id", nullable = false)
+	private Long fromAccountId;
+
+	@Column(name = "to_account_id", nullable = false)
+	private Long toAccountId;
+
 	@Column(name = "external_etf_id")
 	private Long externalEtfId;
 
@@ -78,11 +84,14 @@ public class GiftContract extends BaseEntity {
 	private LocalDateTime cancelledAt;
 
 	@Builder
-	public GiftContract(Long parentId, Long childId, Long externalEtfId, GiftType giftType,
+	public GiftContract(Long parentId, Long childId, Long fromAccountId, Long toAccountId,
+		Long externalEtfId, GiftType giftType,
 		String title, Integer qty, Long cashAmount, Integer transferDay,
 		LocalDate startDate, LocalDate endDate, Long taxFreeLimitAmt, BigDecimal discountRate) {
 		this.parentId = parentId;
 		this.childId = childId;
+		this.fromAccountId = fromAccountId;
+		this.toAccountId = toAccountId;
 		this.externalEtfId = externalEtfId;
 		this.giftType = giftType;
 		this.status = ContractStatus.DRAFT;

@@ -26,6 +26,7 @@ public enum ErrorStatus implements BaseStatus {
      * Account
      */
     ACCOUNT_NOT_FOUND("ACC_404", HttpStatus.NOT_FOUND, "계좌를 찾을 수 없습니다."),
+    ACCOUNT_ACCESS_DENIED("ACC_403", HttpStatus.FORBIDDEN, "해당 계좌에 대한 접근 권한이 없습니다."),
 
     /**
      * Parent
@@ -38,6 +39,12 @@ public enum ErrorStatus implements BaseStatus {
     CHILDREN_NOT_FOUND("CHILDREN_404", HttpStatus.NOT_FOUND, "존재하지 않는 자녀입니다."),
     CHILDREN_DUPLICATE_NAME("CHILDREN_409", HttpStatus.CONFLICT, "이미 등록된 자녀 이름입니다."),
     CHILDREN_ALLOWANCE_ALREADY_LINKED("CHILDREN_409_01", HttpStatus.CONFLICT, "이미 아동수당이 연결되어 있습니다."),
+
+    /**
+     * Gift
+     */
+    GIFT_CONTRACT_INVALID_FIELDS("GIFT_400", HttpStatus.BAD_REQUEST, "증여 유형에 맞는 필드를 입력해주세요."),
+
 
     /**
      * Auth
