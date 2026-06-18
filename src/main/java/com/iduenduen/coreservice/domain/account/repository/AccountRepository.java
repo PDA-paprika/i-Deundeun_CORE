@@ -10,4 +10,5 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByAccountIdAndParentId(Long accountId, Long parentId);
     Optional<Account> findByAccountIdAndChildId(Long accountId, Long childId);
     Optional<Account> findByChildId(Long childId);
+    Optional<Account> findByParentId(Long parentId);
 }
