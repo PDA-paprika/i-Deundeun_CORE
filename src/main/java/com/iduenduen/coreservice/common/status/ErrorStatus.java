@@ -48,6 +48,11 @@ public enum ErrorStatus implements BaseStatus {
     REQUIRED_AGREEMENTS_NOT_AGREED("ONBOARD_400", HttpStatus.BAD_REQUEST, "필수 약관에 동의해야 합니다."),
 
     /**
+     * Goals
+     */
+    GOAL_NOT_FOUND("GOAL_404", HttpStatus.NOT_FOUND, "존재하지 않는 목표입니다."),
+
+    /**
      * Upload
      */
     INVALID_FILE_TYPE("UPLOAD_400", HttpStatus.BAD_REQUEST, "허용되지 않는 파일 형식입니다.");
