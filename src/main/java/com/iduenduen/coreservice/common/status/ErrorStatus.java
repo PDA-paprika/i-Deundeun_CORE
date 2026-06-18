@@ -23,6 +23,11 @@ public enum ErrorStatus implements BaseStatus {
     CONFLICT("COMM_409", HttpStatus.CONFLICT, "이미 존재하는 리소스입니다."),
 
     /**
+     * Account
+     */
+    ACCOUNT_NOT_FOUND("ACC_404", HttpStatus.NOT_FOUND, "계좌를 찾을 수 없습니다."),
+
+    /**
      * Parent
      */
     PARENT_NOT_FOUND("PARENT_404", HttpStatus.NOT_FOUND, "존재하지 않는 부모입니다."),

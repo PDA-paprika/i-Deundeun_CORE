@@ -1,11 +1,28 @@
-server:
-  port: 8081
-
 spring:
-  application:
-    name: core-service
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+  datasource:
+    url: jdbc:mysql://localhost:3306/paprika?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+cloud:
+  aws:
+    s3:
+      bucket: ideundeun-dev-family-document-593883982429-ap-northeast-2-an
+      region: ap-northeast-2
+    credentials:
+      access-key: AKIAYURR6NJO4YFF6U5C
+      secret-key: 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
+
+jwt:
+  secret: ${JWT_SECRET:bG9jYWwtZGV2LW9ubHktc2VjcmV0LWtleS1wbGVhc2UtY2hhbmdl}
+  access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS:3600000}
+  refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRATION_MS:1209600000}
