@@ -47,7 +47,7 @@ public class AuthService {
         if (request.getEmail() == null || request.getPassword() == null || request.getAccountNumber() == null
                 || request.getName() == null || request.getBirthDate() == null || request.getRelation() == null
                 || request.getRegion() == null || request.getChildCount() == null
-                || request.getCertFileUrl() == null) {
+                || request.getCertFileUrl() == null || request.getCertFileUrl().isBlank()) {
             throw new GeneralException(ErrorStatus.BAD_REQUEST);
         }
 
