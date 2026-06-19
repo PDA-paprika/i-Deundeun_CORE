@@ -15,4 +15,5 @@ public interface GiftContractRepository extends JpaRepository<GiftContract, Long
 	List<GiftContract> findAllByChildIdAndStatusAndCancelledAtIsNull(Long childId, ContractStatus status);
 
 	Optional<GiftContract> findByIdAndChildIdAndCancelledAtIsNull(Long id, Long childId);
+	Optional<GiftContract> findByIdAndParentId(Long id, Long parentId);
 }

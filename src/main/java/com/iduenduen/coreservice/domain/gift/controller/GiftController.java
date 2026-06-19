@@ -2,6 +2,7 @@ package com.iduenduen.coreservice.domain.gift.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +17,7 @@ import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateRequest;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateResponse;
+import com.iduenduen.coreservice.domain.gift.dto.GiftContractListResponse;
 import com.iduenduen.coreservice.domain.gift.service.GiftService;
 
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,14 @@ import lombok.RequiredArgsConstructor;
 public class GiftController {
 
 	private final GiftService giftService;
+
+	@Operation(summary = "증여 계약 목록 조회", description = "자녀별 증여 계약 목록을 조회합니다.")
+	@GetMapping("/{childId}/gift-contracts")
+	public ResponseEntity<ApiResponse<GiftContractListResponse>> getGiftContracts(
+		@AuthenticationPrincipal Long parentId,
+		@PathVariable Long childId) {
+		return ApiResponse.success(SuccessStatus.SUCCESS_200, giftService.getGiftContracts(parentId, childId));
+	}
 
 	@Operation(summary = "증여 계약 등록", description = "자녀에게 증여 계약을 등록합니다.")
 	@PostMapping("/{childId}/gift-contracts")

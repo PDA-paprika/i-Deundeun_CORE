@@ -18,6 +18,8 @@ import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateRequest;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateResponse;
+import com.iduenduen.coreservice.domain.gift.dto.GiftContractDetailResponse;
+import com.iduenduen.coreservice.domain.gift.dto.GiftContractListResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftPreviewResponse;
 import com.iduenduen.coreservice.domain.gift.entity.GiftContract;
 import com.iduenduen.coreservice.domain.gift.entity.GiftTransfer;
@@ -36,6 +38,35 @@ public class GiftService {
 	private final ChildrenRepository childrenRepository;
 	private final AccountRepository accountRepository;
 	private final AccountEtfHoldingRepository accountEtfHoldingRepository;
+
+	// 증여 계약 목록 조회
+	public GiftContractListResponse getGiftContracts(Long parentId, Long childId) {
+		childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+
+		List<GiftContract> contracts = giftContractRepository.findAllByChildIdAndCancelledAtIsNull(childId);
+		List<Long> contractIds = contracts.stream().map(GiftContract::getId).toList();
+		List<GiftTransfer> allTransfers = giftTransferRepository.findAllByGiftContractIdIn(contractIds);
+
+		List<GiftContractListResponse.GiftContractItem> items = contracts.stream()
+			.map(contract -> {
+				int transferCount = (int) allTransfers.stream()
+					.filter(t -> t.getGiftContractId().equals(contract.getId()))
+					.count();
+				return GiftContractListResponse.GiftContractItem.from(contract, transferCount);
+			})
+			.toList();
+
+		return new GiftContractListResponse(items);
+	}
+
+	// 증여 계약 상세 조회
+	public GiftContractDetailResponse getGiftContractDetail(Long parentId, Long contractId) {
+		GiftContract contract = giftContractRepository.findByIdAndParentId(contractId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.NOT_FOUND));
+		List<GiftTransfer> transfers = giftTransferRepository.findAllByGiftContractIdOrderBySequenceNoAsc(contractId);
+		return GiftContractDetailResponse.of(contract, transfers);
+	}
 
 	// 증여 예상 정보 계산
 	public GiftPreviewResponse preview(Long parentId, GiftContractCreateRequest request) {
