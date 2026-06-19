@@ -71,4 +71,18 @@ public class ExecutionGoalLinkService {
 
         link.link(req.childId(), req.goalId(), req.memo());
     }
+
+    @Transactional(readOnly = true)
+    public List<GoalExecutionResponse> getByGoal(Long goalId) {
+        List<ExecutionGoalLink> links =
+            executionGoalLinkRepository.findByGoalIdOrderByCreatedAtDesc(goalId);
+
+        List<Long> historyIds = links.stream().map(ExecutionGoalLink::getEtfHistoryId).toList();
+        Map<Long, AccountEtfHistory> historyMap = accountEtfHistoryRepository.findAllById(historyIds)
+            .stream().collect(Collectors.toMap(AccountEtfHistory::getId, h -> h));
+
+        return links.stream()
+            .map(link -> GoalExecutionResponse.of(link, historyMap.get(link.getEtfHistoryId())))
+            .toList();
+    }
 }

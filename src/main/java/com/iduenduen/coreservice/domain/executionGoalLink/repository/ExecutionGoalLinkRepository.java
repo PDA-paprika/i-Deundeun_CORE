@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ExecutionGoalLinkRepository extends JpaRepository<ExecutionGoalLink, Long> {
     List<ExecutionGoalLink> findByParentIdAndLinkedAtIsNullOrderByCreatedAtDesc(Long parentId);
+
+    List<ExecutionGoalLink> findByGoalIdOrderByCreatedAtDesc(Long goalId);
 }
