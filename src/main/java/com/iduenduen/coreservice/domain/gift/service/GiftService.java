@@ -23,6 +23,7 @@ import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractDetailResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractListResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftPreviewResponse;
+import com.iduenduen.coreservice.domain.gift.dto.GiftSummaryResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftTransferHistoryResponse;
 import com.iduenduen.coreservice.domain.gift.entity.GiftContract;
 import com.iduenduen.coreservice.domain.gift.entity.GiftTransfer;
@@ -61,6 +62,35 @@ public class GiftService {
 			.toList();
 
 		return new GiftContractListResponse(items);
+	}
+
+	// 자녀별 증여 현황 요약 (총 증여액 + 연도별)
+	public GiftSummaryResponse getGiftSummary(Long parentId, Long childId) {
+		childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+
+		List<GiftContract> contracts = giftContractRepository.findAllByChildId(childId);
+		List<Long> contractIds = contracts.stream().map(GiftContract::getId).toList();
+		List<GiftTransfer> completedTransfers = giftTransferRepository.findAllByGiftContractIdIn(contractIds)
+			.stream()
+			.filter(t -> t.getStatus() == com.iduenduen.coreservice.domain.gift.enums.TransferStatus.COMPLETED)
+			.toList();
+
+		long totalGiftedAmt = completedTransfers.stream()
+			.mapToLong(GiftTransfer::getTransferredCashAmt)
+			.sum();
+
+		List<GiftSummaryResponse.YearlyAmount> yearly = completedTransfers.stream()
+			.collect(Collectors.groupingBy(
+				t -> t.getCompletedAt().getYear(),
+				Collectors.summingLong(GiftTransfer::getTransferredCashAmt)
+			))
+			.entrySet().stream()
+			.sorted(Map.Entry.comparingByKey())
+			.map(e -> new GiftSummaryResponse.YearlyAmount(e.getKey(), e.getValue()))
+			.toList();
+
+		return new GiftSummaryResponse(totalGiftedAmt, yearly);
 	}
 
 	// 자녀별 이체 내역 조회
