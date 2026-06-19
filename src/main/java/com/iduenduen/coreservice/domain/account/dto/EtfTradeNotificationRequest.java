@@ -29,8 +29,7 @@ public record EtfTradeNotificationRequest(
 
     @NotNull
     @Positive
-    @JsonProperty("qty_delta")
-    Integer qtyDelta,
+    Integer qty,
 
     @NotNull
     @Positive
@@ -41,6 +40,12 @@ public record EtfTradeNotificationRequest(
 
     @JsonProperty("reference_type")
     ReferenceType referenceType,
+
+    @JsonProperty("child_id")
+    Long childId,
+
+    @JsonProperty("goal_id")
+    Long goalId,
 
     String memo,
 

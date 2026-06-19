@@ -25,16 +25,6 @@ public class ExecutionGoalLinkService {
     private final AccountEtfHistoryRepository accountEtfHistoryRepository;
 
     @Transactional
-    public Long createLink(Long parentId, Long etfHistoryId) {
-        ExecutionGoalLink link = ExecutionGoalLink.builder()
-            .parentId(parentId)
-            .etfHistoryId(etfHistoryId)
-            .build();
-        executionGoalLinkRepository.save(link);
-        return link.getId();
-    }
-
-    @Transactional
     public Long createLinkAndConnect(Long parentId, Long etfHistoryId,
                                      Long childId, Long goalId, String memo) {
         ExecutionGoalLink link = ExecutionGoalLink.builder()

@@ -48,6 +48,7 @@ public class ExecutionGoalLink {
     }
 
     public void link(Long childId, Long goalId, String memo) {
+        if (childId == null || goalId == null) return;
         this.childId = childId;
         this.goalId = goalId;
         this.memo = memo;

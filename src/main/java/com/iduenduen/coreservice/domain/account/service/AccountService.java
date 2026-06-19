@@ -9,7 +9,6 @@ import com.iduenduen.coreservice.domain.account.entity.AccountEtfHistory;
 import com.iduenduen.coreservice.domain.account.enums.EtfEventType;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
-import com.iduenduen.coreservice.domain.account.dto.EtfSellRequest;
 import com.iduenduen.coreservice.domain.account.dto.EtfTradeNotificationRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.service.ExecutionGoalLinkService;
 import lombok.RequiredArgsConstructor;
@@ -43,31 +42,17 @@ public class AccountService {
     }
 
     @Transactional
-    public Long recordBuy(EtfTradeNotificationRequest req) {
+    public Long recordTrade(EtfTradeNotificationRequest req) {
+        int qtyDelta = req.eventType() == EtfEventType.SELL ? -req.qty() : req.qty();
+
         AccountEtfHistory history = AccountEtfHistory.builder()
             .accountId(req.accountId())
             .eventType(req.eventType())
             .externalEtfId(req.externalEtfId())
-            .qtyDelta(req.qtyDelta())
+            .qtyDelta(qtyDelta)
             .price(req.price())
             .referenceId(req.referenceId())
             .referenceType(req.referenceType())
-            .memo(req.memo())
-            .occurredAt(req.occurredAt())
-            .build();
-        accountEtfHistoryRepository.save(history);
-
-        return executionGoalLinkService.createLink(req.parentId(), history.getId());
-    }
-
-    @Transactional
-    public Long recordSell(EtfSellRequest req) {
-        AccountEtfHistory history = AccountEtfHistory.builder()
-            .accountId(req.accountId())
-            .eventType(EtfEventType.SELL)
-            .externalEtfId(req.externalEtfId())
-            .qtyDelta(-req.qty())
-            .price(req.price())
             .memo(req.memo())
             .occurredAt(req.occurredAt())
             .build();

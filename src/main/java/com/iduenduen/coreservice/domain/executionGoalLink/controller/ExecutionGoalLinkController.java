@@ -2,7 +2,6 @@ package com.iduenduen.coreservice.domain.executionGoalLink.controller;
 
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
-import com.iduenduen.coreservice.domain.account.dto.EtfSellRequest;
 import com.iduenduen.coreservice.domain.account.dto.EtfTradeNotificationRequest;
 import com.iduenduen.coreservice.domain.account.service.AccountService;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
@@ -25,17 +24,10 @@ public class ExecutionGoalLinkController {
     private final ExecutionGoalLinkService executionGoalLinkService;
 
     @PostMapping("/trade")
-    public ResponseEntity<ApiResponse<Long>> recordBuy(
+    public ResponseEntity<ApiResponse<Long>> recordTrade(
         @RequestBody @Valid EtfTradeNotificationRequest req
     ) {
-        return ApiResponse.success(SuccessStatus.EXECUTION_LINK_CREATED, accountService.recordBuy(req));
-    }
-
-    @PostMapping("/sell")
-    public ResponseEntity<ApiResponse<Long>> recordSell(
-        @RequestBody @Valid EtfSellRequest req
-    ) {
-        return ApiResponse.success(SuccessStatus.EXECUTION_LINK_CREATED, accountService.recordSell(req));
+        return ApiResponse.success(SuccessStatus.EXECUTION_LINK_CREATED, accountService.recordTrade(req));
     }
 
     @GetMapping("/unlinked")
