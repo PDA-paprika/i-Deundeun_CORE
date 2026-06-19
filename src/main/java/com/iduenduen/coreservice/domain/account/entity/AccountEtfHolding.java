@@ -33,4 +33,8 @@ public class AccountEtfHolding {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public void deductQty(int qty) {
+        this.qty -= qty;
+    }
 }
