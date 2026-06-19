@@ -51,6 +51,9 @@ public class GiftTransfer extends BaseEntity {
 	@Column(name = "available_etf_qty", nullable = false)
 	private int availableEtfQty = 0;
 
+	@Column(name = "retry_count", nullable = false)
+	private int retryCount = 0;
+
 	@Enumerated(EnumType.STRING)
 	@Column(name = "check_status", nullable = false, length = 20)
 	private CheckStatus checkStatus = CheckStatus.UNCHECKED;
@@ -81,6 +84,15 @@ public class GiftTransfer extends BaseEntity {
 		this.availableCashAmt = availableCashAmt;
 		this.requiredEtfQty = requiredEtfQty;
 		this.availableEtfQty = availableEtfQty;
+	}
+
+	public void recordAvailableAssets(long availableCashAmt, int availableEtfQty) {
+		this.availableCashAmt = availableCashAmt;
+		this.availableEtfQty = availableEtfQty;
+	}
+
+	public void incrementRetry() {
+		this.retryCount++;
 	}
 
 	public void complete(long transferredCashAmt, int transferredEtfQty) {
