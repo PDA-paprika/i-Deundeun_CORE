@@ -38,6 +38,7 @@ public class AuthService {
 
     private final ParentRepository parentRepository;
     private final UserAgreementRepository userAgreementRepository;
+    private final EmailVerificationService emailVerificationService;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final StringRedisTemplate redisTemplate;
@@ -52,6 +53,8 @@ public class AuthService {
         }
 
         validateAgreements(request.getAgreements());
+
+        emailVerificationService.isEmailVerified(request.getEmail());
 
         if (parentRepository.existsByEmail(request.getEmail())) {
             throw new GeneralException(ErrorStatus.DUPLICATE_EMAIL);
