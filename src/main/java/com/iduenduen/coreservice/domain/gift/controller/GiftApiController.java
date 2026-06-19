@@ -16,6 +16,7 @@ import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateRequest;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractDetailResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractListResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftPreviewResponse;
+import com.iduenduen.coreservice.domain.gift.dto.GiftTransferHistoryResponse;
 import com.iduenduen.coreservice.domain.gift.service.GiftService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,6 +47,13 @@ public class GiftApiController {
             @AuthenticationPrincipal Long parentId,
             @PathVariable Long contractId) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, giftService.getGiftContractDetail(parentId, contractId));
+    }
+
+    @Operation(summary = "부모 전체 이체 내역 조회", description = "내가 보낸 전체 이체 내역을 조회합니다.")
+    @GetMapping("/transfers")
+    public ResponseEntity<ApiResponse<GiftTransferHistoryResponse>> getTransfersByParent(
+            @AuthenticationPrincipal Long parentId) {
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, giftService.getTransfersByParent(parentId));
     }
 
     @Operation(summary = "증여 계약 취소", description = "증여 계약을 취소합니다. DRAFT 또는 ACTIVE 상태만 취소 가능합니다.")

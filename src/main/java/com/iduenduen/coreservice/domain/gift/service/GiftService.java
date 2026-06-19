@@ -82,6 +82,22 @@ public class GiftService {
 		return new GiftTransferHistoryResponse(items);
 	}
 
+	// 부모 전체 이체 내역 조회
+	public GiftTransferHistoryResponse getTransfersByParent(Long parentId) {
+		List<GiftContract> contracts = giftContractRepository.findAllByParentId(parentId);
+		List<Long> contractIds = contracts.stream().map(GiftContract::getId).toList();
+		List<GiftTransfer> transfers = giftTransferRepository.findAllByGiftContractIdIn(contractIds);
+
+		Map<Long, GiftContract> contractMap = contracts.stream()
+			.collect(Collectors.toMap(GiftContract::getId, c -> c));
+
+		List<GiftTransferHistoryResponse.TransferHistoryItem> items = transfers.stream()
+			.map(t -> GiftTransferHistoryResponse.TransferHistoryItem.of(t, contractMap.get(t.getGiftContractId())))
+			.toList();
+
+		return new GiftTransferHistoryResponse(items);
+	}
+
 	// 증여 계약 취소
 	@Transactional
 	public void cancelGiftContract(Long parentId, Long contractId) {
