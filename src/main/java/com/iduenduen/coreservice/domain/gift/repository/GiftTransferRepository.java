@@ -16,5 +16,8 @@ public interface GiftTransferRepository extends JpaRepository<GiftTransfer, Long
 
 	List<GiftTransfer> findAllByScheduledDateAndStatus(LocalDate scheduledDate, TransferStatus status);
 
+	List<GiftTransfer> findAllByScheduledDateAndStatusAndRetryCountGreaterThan(
+		LocalDate scheduledDate, TransferStatus status, int retryCount);
+
 	boolean existsByGiftContractIdAndStatus(Long giftContractId, TransferStatus status);
 }

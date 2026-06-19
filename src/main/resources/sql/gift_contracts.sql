@@ -1,0 +1,22 @@
+CREATE TABLE gift_contracts (
+    id                 BIGINT        NOT NULL AUTO_INCREMENT,
+    parent_id          BIGINT        NOT NULL,
+    child_id           BIGINT        NOT NULL,
+    from_account_id    BIGINT        NOT NULL,
+    to_account_id      BIGINT        NOT NULL,
+    external_etf_id    BIGINT,
+    gift_type          VARCHAR(20)   NOT NULL,
+    status             VARCHAR(20)   NOT NULL DEFAULT 'DRAFT',
+    title              VARCHAR(200),
+    qty                INT,
+    cash_amount        BIGINT        NOT NULL DEFAULT 0,
+    transfer_day       INT,
+    start_date         DATE          NOT NULL,
+    end_date           DATE,
+    tax_free_limit_amt BIGINT        NOT NULL DEFAULT 0,
+    discount_rate      DECIMAL(5, 4) NOT NULL DEFAULT 0.0300,
+    cancelled_at       DATETIME,
+    created_at         DATETIME      NOT NULL,
+    updated_at         DATETIME      NOT NULL,
+    PRIMARY KEY (id)
+);
