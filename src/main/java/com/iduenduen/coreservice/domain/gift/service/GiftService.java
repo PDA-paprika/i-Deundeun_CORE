@@ -83,6 +83,7 @@ public class GiftService {
 			contract.getId(),
 			contract.getGiftType(),
 			contract.getStatus(),
+			GiftContractCreateResponse.messageFrom(contract.getStatus()),
 			expectedTotalAmount,
 			transferCount
 		);
