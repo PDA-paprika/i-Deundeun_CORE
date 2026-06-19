@@ -20,15 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExecutionGoalLinkController {
 
-    private final AccountService accountService;
     private final ExecutionGoalLinkService executionGoalLinkService;
-
-    @PostMapping("/trade")
-    public ResponseEntity<ApiResponse<Long>> recordTrade(
-        @RequestBody @Valid EtfTradeNotificationRequest req
-    ) {
-        return ApiResponse.success(SuccessStatus.EXECUTION_LINK_CREATED, accountService.recordTrade(req));
-    }
 
     @GetMapping("/unlinked")
     public ResponseEntity<ApiResponse<List<UnlinkedExecutionResponse>>> getUnlinked(
