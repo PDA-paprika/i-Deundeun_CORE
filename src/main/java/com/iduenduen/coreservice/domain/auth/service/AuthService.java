@@ -184,6 +184,14 @@ public class AuthService {
     }
 
     @Transactional
+    public void withdraw(Long parentId, String accessToken, String refreshToken, HttpServletResponse response) {
+        Parent parent = parentRepository.findByIdAndDeletedAtIsNull(parentId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.PARENT_NOT_FOUND));
+        parent.withdraw();
+        logout(accessToken, refreshToken, response);
+    }
+
+    @Transactional
     public void resetPassword(PasswordResetRequest request) {
         emailVerificationService.isEmailVerified(request.email());
 
