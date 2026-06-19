@@ -58,6 +58,15 @@ public enum ErrorStatus implements BaseStatus {
     GOAL_NOT_FOUND("GOAL_404", HttpStatus.NOT_FOUND, "존재하지 않는 목표입니다."),
 
     /**
+     * Email
+     */
+    EMAIL_SEND_FAILED("EMAIL_500", HttpStatus.INTERNAL_SERVER_ERROR, "이메일 전송에 실패했습니다."),
+    EMAIL_NOT_VERIFIED("EMAIL_401", HttpStatus.UNAUTHORIZED, "이메일 인증이 완료되지 않았습니다."),
+    EMAIL_VERIFICATION_NOT_FOUND("EMAIL_404", HttpStatus.NOT_FOUND, "이메일 인증 정보를 찾을 수 없습니다."),
+    VERIFICATION_CODE_EXPIRED("EMAIL_410", HttpStatus.GONE, "인증 코드가 만료되었습니다."),
+    INVALID_VERIFICATION_CODE("EMAIL_400", HttpStatus.BAD_REQUEST, "인증 코드가 올바르지 않습니다."),
+
+    /**
      * Upload
      */
     INVALID_FILE_TYPE("UPLOAD_400", HttpStatus.BAD_REQUEST, "허용되지 않는 파일 형식입니다.");
