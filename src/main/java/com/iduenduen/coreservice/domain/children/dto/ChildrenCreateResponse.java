@@ -2,6 +2,7 @@ package com.iduenduen.coreservice.domain.children.dto;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.iduenduen.coreservice.domain.children.entity.Children;
 import com.iduenduen.coreservice.domain.children.enums.CreatedVia;
@@ -11,6 +12,7 @@ public record ChildrenCreateResponse(
 
 	Long id,
 
+	@JsonFormat(pattern = "yyyy-MM-dd")
 	@JsonProperty("parent_id")
 	Long parentId,
 
