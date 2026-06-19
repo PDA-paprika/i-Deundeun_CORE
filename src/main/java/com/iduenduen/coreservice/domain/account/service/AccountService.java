@@ -34,10 +34,7 @@ public class AccountService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.ACCOUNT_NOT_FOUND));
 
         return AccountBalanceResponse.builder()
-                .availableCash(account.getAvailableAmt())
-                .d0Balance(account.getAvailableAmt())
-                .d1Balance(account.getAvailableAmt())
-                .d2Balance(account.getAvailableAmt())
+                .availableAmt(account.getAvailableAmt())
                 .build();
     }
 
