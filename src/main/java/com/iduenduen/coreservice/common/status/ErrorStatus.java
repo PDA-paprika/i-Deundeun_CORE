@@ -69,7 +69,13 @@ public enum ErrorStatus implements BaseStatus {
     /**
      * Upload
      */
-    INVALID_FILE_TYPE("UPLOAD_400", HttpStatus.BAD_REQUEST, "허용되지 않는 파일 형식입니다.");
+    INVALID_FILE_TYPE("UPLOAD_400", HttpStatus.BAD_REQUEST, "허용되지 않는 파일 형식입니다."),
+
+    /**
+     * Execution Goal Links
+     */
+    EXECUTION_LINK_NOT_FOUND("EXEC_404", HttpStatus.NOT_FOUND, "존재하지 않는 체결 링크입니다."),
+    EXECUTION_LINK_ALREADY_LINKED("EXEC_409", HttpStatus.CONFLICT, "이미 연결된 체결입니다.");
 
     private final String code;
     private final HttpStatus httpStatus;

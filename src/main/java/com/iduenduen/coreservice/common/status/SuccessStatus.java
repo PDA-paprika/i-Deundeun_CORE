@@ -35,7 +35,13 @@ public enum SuccessStatus implements BaseStatus {
      * Goals
      */
     GOAL_CREATE_SUCCESS("GOAL_201", HttpStatus.CREATED, "목표가 생성되었습니다."),
-    GOAL_DELETE_SUCCESS("GOAL_200", HttpStatus.OK, "목표가 삭제되었습니다.");
+    GOAL_DELETE_SUCCESS("GOAL_200", HttpStatus.OK, "목표가 삭제되었습니다."),
+
+    /**
+     * Execution Goal Links
+     */
+    EXECUTION_LINK_CREATED("EXEC_201", HttpStatus.CREATED, "체결 기록이 등록되었습니다."),
+    EXECUTION_LINK_SUCCESS("EXEC_200", HttpStatus.OK, "성공입니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
