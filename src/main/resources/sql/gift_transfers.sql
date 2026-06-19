@@ -1,0 +1,21 @@
+CREATE TABLE gift_transfers (
+    id                   BIGINT       NOT NULL AUTO_INCREMENT,
+    gift_contract_id     BIGINT       NOT NULL,
+    sequence_no          INT          NOT NULL DEFAULT 1,
+    scheduled_date       DATE         NOT NULL,
+    required_cash_amt    BIGINT       NOT NULL DEFAULT 0,
+    available_cash_amt   BIGINT       NOT NULL DEFAULT 0,
+    required_etf_qty     INT          NOT NULL DEFAULT 0,
+    available_etf_qty    INT          NOT NULL DEFAULT 0,
+    retry_count          INT          NOT NULL DEFAULT 0,
+    check_status         VARCHAR(20)  NOT NULL DEFAULT 'UNCHECKED',
+    failure_reason       VARCHAR(500),
+    status               VARCHAR(20)  NOT NULL DEFAULT 'SCHEDULED',
+    transferred_cash_amt BIGINT       NOT NULL DEFAULT 0,
+    transferred_etf_qty  INT          NOT NULL DEFAULT 0,
+    completed_at         DATETIME,
+    created_at           DATETIME     NOT NULL,
+    updated_at           DATETIME     NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (gift_contract_id) REFERENCES gift_contracts (id)
+);
