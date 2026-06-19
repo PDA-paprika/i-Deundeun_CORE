@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractDetailResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractListResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftPreviewResponse;
+import com.iduenduen.coreservice.domain.gift.dto.GiftTransferHistoryResponse;
 import com.iduenduen.coreservice.domain.gift.entity.GiftContract;
 import com.iduenduen.coreservice.domain.gift.entity.GiftTransfer;
 import com.iduenduen.coreservice.domain.gift.repository.GiftContractRepository;
@@ -58,6 +61,25 @@ public class GiftService {
 			.toList();
 
 		return new GiftContractListResponse(items);
+	}
+
+	// 자녀별 이체 내역 조회
+	public GiftTransferHistoryResponse getTransfersByChild(Long parentId, Long childId) {
+		childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+
+		List<GiftContract> contracts = giftContractRepository.findAllByChildId(childId);
+		List<Long> contractIds = contracts.stream().map(GiftContract::getId).toList();
+		List<GiftTransfer> transfers = giftTransferRepository.findAllByGiftContractIdIn(contractIds);
+
+		Map<Long, GiftContract> contractMap = contracts.stream()
+			.collect(java.util.stream.Collectors.toMap(GiftContract::getId, c -> c));
+
+		List<GiftTransferHistoryResponse.TransferHistoryItem> items = transfers.stream()
+			.map(t -> GiftTransferHistoryResponse.TransferHistoryItem.of(t, contractMap.get(t.getGiftContractId())))
+			.toList();
+
+		return new GiftTransferHistoryResponse(items);
 	}
 
 	// 증여 계약 취소

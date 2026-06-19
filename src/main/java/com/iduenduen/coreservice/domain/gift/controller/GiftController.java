@@ -18,6 +18,7 @@ import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateRequest;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractListResponse;
+import com.iduenduen.coreservice.domain.gift.dto.GiftTransferHistoryResponse;
 import com.iduenduen.coreservice.domain.gift.service.GiftService;
 
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,14 @@ public class GiftController {
 		@AuthenticationPrincipal Long parentId,
 		@PathVariable Long childId) {
 		return ApiResponse.success(SuccessStatus.SUCCESS_200, giftService.getGiftContracts(parentId, childId));
+	}
+
+	@Operation(summary = "자녀별 이체 내역 조회", description = "자녀의 전체 이체 내역을 조회합니다.")
+	@GetMapping("/{childId}/transfers")
+	public ResponseEntity<ApiResponse<GiftTransferHistoryResponse>> getTransfersByChild(
+		@AuthenticationPrincipal Long parentId,
+		@PathVariable Long childId) {
+		return ApiResponse.success(SuccessStatus.SUCCESS_200, giftService.getTransfersByChild(parentId, childId));
 	}
 
 	@Operation(summary = "증여 계약 등록", description = "자녀에게 증여 계약을 등록합니다.")
