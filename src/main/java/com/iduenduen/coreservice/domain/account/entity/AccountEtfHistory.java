@@ -3,6 +3,7 @@ package com.iduenduen.coreservice.domain.account.entity;
 import com.iduenduen.coreservice.domain.account.enums.EtfEventType;
 import com.iduenduen.coreservice.domain.account.enums.ReferenceType;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "account_etf_histories")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 public class AccountEtfHistory {
 
     @Id
@@ -52,4 +53,19 @@ public class AccountEtfHistory {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Builder
+    public AccountEtfHistory(Long accountId, EtfEventType eventType, String externalEtfId,
+                              int qtyDelta, long price, String referenceId,
+                              ReferenceType referenceType, String memo, LocalDateTime occurredAt) {
+        this.accountId = accountId;
+        this.eventType = eventType;
+        this.externalEtfId = externalEtfId;
+        this.qtyDelta = qtyDelta;
+        this.price = price;
+        this.referenceId = referenceId;
+        this.referenceType = referenceType;
+        this.memo = memo;
+        this.occurredAt = occurredAt;
+    }
 }
