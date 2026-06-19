@@ -1,7 +1,11 @@
 package com.iduenduen.coreservice.domain.executionGoalLink.service;
 
+import com.iduenduen.coreservice.common.exception.GeneralException;
+import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHistory;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
+import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
+import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.UnlinkedExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.entity.ExecutionGoalLink;
 import com.iduenduen.coreservice.domain.executionGoalLink.repository.ExecutionGoalLinkRepository;
@@ -54,5 +58,17 @@ public class ExecutionGoalLinkService {
         return links.stream()
             .map(link -> UnlinkedExecutionResponse.of(link, historyMap.get(link.getEtfHistoryId())))
             .toList();
+    }
+
+    @Transactional
+    public void link(Long linkId, LinkRequest req) {
+        ExecutionGoalLink link = executionGoalLinkRepository.findById(linkId)
+            .orElseThrow(() -> new GeneralException(ErrorStatus.EXECUTION_LINK_NOT_FOUND));
+
+        if (link.getLinkedAt() != null) {
+            throw new GeneralException(ErrorStatus.EXECUTION_LINK_ALREADY_LINKED);
+        }
+
+        link.link(req.childId(), req.goalId(), req.memo());
     }
 }
