@@ -126,6 +126,10 @@ public class Parent extends BaseEntity {
         this.dualIncome = dualIncome;
     }
 
+    public void updatePassword(String newPasswordHash) {
+        this.passwordHash = newPasswordHash;
+    }
+
     public void withdraw() {
         this.deletedAt = LocalDateTime.now();
     }

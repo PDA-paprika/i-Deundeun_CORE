@@ -2,6 +2,7 @@ package com.iduenduen.coreservice.domain.auth.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -14,8 +15,11 @@ import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.auth.dto.LoginRequest;
 import com.iduenduen.coreservice.domain.auth.dto.LoginResponse;
+import com.iduenduen.coreservice.domain.auth.dto.PasswordResetRequest;
 import com.iduenduen.coreservice.domain.auth.dto.SignupRequest;
 import com.iduenduen.coreservice.domain.auth.dto.SignupResponse;
+
+import jakarta.validation.Valid;
 import com.iduenduen.coreservice.domain.auth.service.AuthService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -47,6 +51,12 @@ public class AuthController {
             throw new GeneralException(ErrorStatus.INVALID_TOKEN);
         }
         return ApiResponse.success(SuccessStatus.SUCCESS_200, authService.reissue(refreshToken));
+    }
+
+    @PatchMapping("/password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody @Valid PasswordResetRequest request) {
+        authService.resetPassword(request);
+        return ApiResponse.success(SuccessStatus.SUCCESS_200);
     }
 
     @PostMapping("/logout")

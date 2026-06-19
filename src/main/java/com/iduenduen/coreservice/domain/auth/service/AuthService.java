@@ -16,6 +16,7 @@ import com.iduenduen.coreservice.common.security.JwtProvider;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.auth.dto.LoginRequest;
 import com.iduenduen.coreservice.domain.auth.dto.LoginResponse;
+import com.iduenduen.coreservice.domain.auth.dto.PasswordResetRequest;
 import com.iduenduen.coreservice.domain.auth.dto.SignupRequest;
 import com.iduenduen.coreservice.domain.auth.dto.SignupResponse;
 import com.iduenduen.coreservice.domain.onboarding.entity.UserAgreement;
@@ -180,6 +181,16 @@ public class AuthService {
                 .maxAge(0)
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    @Transactional
+    public void resetPassword(PasswordResetRequest request) {
+        emailVerificationService.isEmailVerified(request.email());
+
+        Parent parent = parentRepository.findByEmailAndDeletedAtIsNull(request.email())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.PARENT_NOT_FOUND));
+
+        parent.updatePassword(passwordEncoder.encode(request.newPassword()));
     }
 
     public Long resolveActiveParentId(String accessToken) {
