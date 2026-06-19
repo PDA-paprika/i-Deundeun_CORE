@@ -4,16 +4,15 @@ import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.account.dto.AccountBalanceResponse;
 import com.iduenduen.coreservice.domain.account.dto.AccountInfoResponse;
+import com.iduenduen.coreservice.domain.account.dto.EtfTradeNotificationRequest;
 import com.iduenduen.coreservice.domain.account.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,5 +34,12 @@ public class AccountController {
     public ResponseEntity<ApiResponse<AccountBalanceResponse>> getBalance(
             @RequestParam Long accountId) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, accountService.getBalance(accountId));
+    }
+
+    @PostMapping("/trade")
+    public ResponseEntity<ApiResponse<Long>> recordTrade(
+            @RequestBody @Valid EtfTradeNotificationRequest req
+    ) {
+        return ApiResponse.success(SuccessStatus.EXECUTION_LINK_CREATED, accountService.recordTrade(req));
     }
 }
