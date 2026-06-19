@@ -44,6 +44,9 @@ public enum ErrorStatus implements BaseStatus {
      * Gift
      */
     GIFT_CONTRACT_INVALID_FIELDS("GIFT_400", HttpStatus.BAD_REQUEST, "증여 유형에 맞는 필드를 입력해주세요."),
+    GIFT_CONTRACT_ONLY_TODAY("GIFT_400_03", HttpStatus.BAD_REQUEST, "일시금 및 ETF 증여는 당일만 가능합니다."),
+    INSUFFICIENT_BALANCE("GIFT_400_01", HttpStatus.BAD_REQUEST, "계좌 잔액이 부족합니다."),
+    INSUFFICIENT_ETF_QTY("GIFT_400_02", HttpStatus.BAD_REQUEST, "보유 ETF 수량이 부족합니다."),
 
 
     /**

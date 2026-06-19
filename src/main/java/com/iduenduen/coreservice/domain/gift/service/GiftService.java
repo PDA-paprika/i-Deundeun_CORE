@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
+import com.iduenduen.coreservice.domain.account.entity.Account;
+import com.iduenduen.coreservice.domain.account.entity.AccountEtfHoldingId;
+import com.iduenduen.coreservice.domain.account.repository.AccountEtfHoldingRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateRequest;
@@ -31,6 +34,7 @@ public class GiftService {
 	private final GiftTransferRepository giftTransferRepository;
 	private final ChildrenRepository childrenRepository;
 	private final AccountRepository accountRepository;
+	private final AccountEtfHoldingRepository accountEtfHoldingRepository;
 
 	// 증여 계약 등록
 	@Transactional
@@ -39,8 +43,14 @@ public class GiftService {
 		childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
 
-		validateAccounts(request.fromAccountId(), request.toAccountId(), parentId, childId);
+		Account fromAccount = accountRepository.findByParentId(parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.ACCOUNT_NOT_FOUND));
+		Long toAccountId = accountRepository.findByChildId(childId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.ACCOUNT_NOT_FOUND))
+			.getAccountId();
+		validateAccounts(fromAccount.getAccountId(), toAccountId, parentId, childId);
 		validateRequest(request);
+		validateAssets(fromAccount, request);
 
 		LocalDate startDate = resolveStartDate(request);
 		LocalDate endDate = resolveEndDate(request);
@@ -48,8 +58,8 @@ public class GiftService {
 		GiftContract contract = GiftContract.builder()
 			.parentId(parentId)
 			.childId(childId)
-			.fromAccountId(request.fromAccountId())
-			.toAccountId(request.toAccountId())
+			.fromAccountId(fromAccount.getAccountId())
+			.toAccountId(toAccountId)
 			.giftType(request.giftType())
 			.title(request.title())
 			.cashAmount(request.cashAmount() != null ? request.cashAmount() : 0L)
@@ -64,6 +74,7 @@ public class GiftService {
 
 		List<GiftTransfer> transfers = createTransfers(contract);
 		giftTransferRepository.saveAll(transfers);
+		executeImmediateTransfer(fromAccount, contract, transfers, request);
 
 		int transferCount = transfers.size();
 		long expectedTotalAmount = calculateExpectedTotalAmount(contract, transferCount);
@@ -102,6 +113,48 @@ public class GiftService {
 		return endMonth.atDay(Math.min(request.transferDay(), endMonth.lengthOfMonth()));
 	}
 
+	// ONE_TIME, ETF는 당일 즉시 차감 및 상태 변경
+	private void executeImmediateTransfer(Account fromAccount, GiftContract contract,
+		List<GiftTransfer> transfers, GiftContractCreateRequest request) {
+		switch (contract.getGiftType()) {
+			case ONE_TIME -> {
+				fromAccount.deductCash(contract.getCashAmount());
+				transfers.get(0).complete(contract.getCashAmount(), 0);
+				contract.complete();
+			}
+			case ETF -> {
+				AccountEtfHoldingId holdingId = new AccountEtfHoldingId(
+					String.valueOf(request.externalEtfId()), fromAccount.getAccountId());
+				accountEtfHoldingRepository.findById(holdingId)
+					.ifPresent(holding -> holding.deductQty(contract.getQty()));
+				transfers.get(0).complete(0, contract.getQty());
+				contract.complete();
+			}
+			case INSTALLMENT -> contract.activate();
+		}
+	}
+
+	// 현금 잔액 및 ETF 수량 검증
+	private void validateAssets(Account fromAccount, GiftContractCreateRequest request) {
+		switch (request.giftType()) {
+			case INSTALLMENT, ONE_TIME -> {
+				if (fromAccount.getAvailableAmt() < request.cashAmount()) {
+					throw new GeneralException(ErrorStatus.INSUFFICIENT_BALANCE);
+				}
+			}
+			case ETF -> {
+				AccountEtfHoldingId holdingId = new AccountEtfHoldingId(
+					String.valueOf(request.externalEtfId()), fromAccount.getAccountId());
+				int availableQty = accountEtfHoldingRepository.findById(holdingId)
+					.map(h -> h.getQty())
+					.orElse(0);
+				if (availableQty < request.qty()) {
+					throw new GeneralException(ErrorStatus.INSUFFICIENT_ETF_QTY);
+				}
+			}
+		}
+	}
+
 	// fromAccountId → parentId 소유 확인, toAccountId → childId 소유 확인
 	private void validateAccounts(Long fromAccountId, Long toAccountId, Long parentId, Long childId) {
 		accountRepository.findByAccountIdAndParentId(fromAccountId, parentId)
@@ -122,10 +175,16 @@ public class GiftService {
 				if (request.cashAmount() == null || request.startDate() == null) {
 					throw new GeneralException(ErrorStatus.GIFT_CONTRACT_INVALID_FIELDS);
 				}
+				if (!request.startDate().isEqual(LocalDate.now())) {
+					throw new GeneralException(ErrorStatus.GIFT_CONTRACT_ONLY_TODAY);
+				}
 			}
 			case ETF -> {
 				if (request.externalEtfId() == null || request.qty() == null || request.startDate() == null) {
 					throw new GeneralException(ErrorStatus.GIFT_CONTRACT_INVALID_FIELDS);
+				}
+				if (!request.startDate().isEqual(LocalDate.now())) {
+					throw new GeneralException(ErrorStatus.GIFT_CONTRACT_ONLY_TODAY);
 				}
 			}
 		}

@@ -35,14 +35,6 @@ public record GiftContractCreateRequest(
 	@JsonProperty("end_month")
 	YearMonth endMonth,
 
-	@NotNull
-	@JsonProperty("from_account_id")
-	Long fromAccountId,
-
-	@NotNull
-	@JsonProperty("to_account_id")
-	Long toAccountId,
-
 	//mts server와 연결 예정
 	@JsonProperty("external_etf_id")
 	Long externalEtfId,

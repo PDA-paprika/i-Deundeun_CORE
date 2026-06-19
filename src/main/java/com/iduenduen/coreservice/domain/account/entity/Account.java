@@ -43,4 +43,8 @@ public class Account {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public void deductCash(long amount) {
+        this.availableAmt -= amount;
+    }
 }
