@@ -18,6 +18,7 @@ import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateRequest;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateResponse;
+import com.iduenduen.coreservice.domain.gift.dto.GiftPreviewResponse;
 import com.iduenduen.coreservice.domain.gift.entity.GiftContract;
 import com.iduenduen.coreservice.domain.gift.entity.GiftTransfer;
 import com.iduenduen.coreservice.domain.gift.repository.GiftContractRepository;
@@ -36,6 +37,55 @@ public class GiftService {
 	private final AccountRepository accountRepository;
 	private final AccountEtfHoldingRepository accountEtfHoldingRepository;
 
+	// 증여 예상 정보 계산
+	public GiftPreviewResponse preview(Long parentId, GiftContractCreateRequest request) {
+		validateRequest(request);
+		Account fromAccount = accountRepository.findByParentId(parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.ACCOUNT_NOT_FOUND));
+		validateAssets(fromAccount, request);
+		return calculatePreview(request);
+	}
+
+	// preview와 등록에서 공통으로 사용하는 계산 로직
+	private GiftPreviewResponse calculatePreview(GiftContractCreateRequest request) {
+		LocalDate firstDate = resolveStartDate(request);
+		LocalDate lastDate = resolveEndDate(request);
+
+		return switch (request.giftType()) {
+			case INSTALLMENT -> {
+				int transferCount = (int) YearMonth.from(firstDate)
+					.until(YearMonth.from(lastDate), ChronoUnit.MONTHS) + 1;
+				yield new GiftPreviewResponse(
+					request.giftType(),
+					request.cashAmount(),
+					null,
+					request.cashAmount() * transferCount,
+					transferCount,
+					firstDate,
+					lastDate
+				);
+			}
+			case ONE_TIME -> new GiftPreviewResponse(
+				request.giftType(),
+				request.cashAmount(),
+				null,
+				request.cashAmount(),
+				1,
+				firstDate,
+				null
+			);
+			case ETF -> new GiftPreviewResponse(
+				request.giftType(),
+				null,
+				request.qty(),
+				0L,
+				1,
+				firstDate,
+				null
+			);
+		};
+	}
+
 	// 증여 계약 등록
 	@Transactional
 	public GiftContractCreateResponse registerGiftContract(Long parentId, Long childId,
@@ -52,8 +102,7 @@ public class GiftService {
 		validateRequest(request);
 		validateAssets(fromAccount, request);
 
-		LocalDate startDate = resolveStartDate(request);
-		LocalDate endDate = resolveEndDate(request);
+		GiftPreviewResponse preview = calculatePreview(request);
 
 		GiftContract contract = GiftContract.builder()
 			.parentId(parentId)
@@ -64,8 +113,8 @@ public class GiftService {
 			.title(request.title())
 			.cashAmount(request.cashAmount() != null ? request.cashAmount() : 0L)
 			.transferDay(request.transferDay())
-			.startDate(startDate)
-			.endDate(endDate)
+			.startDate(preview.firstTransferDate())
+			.endDate(preview.lastTransferDate())
 			.externalEtfId(request.externalEtfId())
 			.qty(request.qty())
 			.build();
@@ -76,8 +125,8 @@ public class GiftService {
 		giftTransferRepository.saveAll(transfers);
 		executeImmediateTransfer(fromAccount, contract, transfers, request);
 
-		int transferCount = transfers.size();
-		long expectedTotalAmount = calculateExpectedTotalAmount(contract, transferCount);
+		int transferCount = preview.transferCount();
+		long expectedTotalAmount = preview.expectedTotalAmount();
 
 		return new GiftContractCreateResponse(
 			contract.getId(),
