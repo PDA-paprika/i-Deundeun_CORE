@@ -60,10 +60,29 @@ public class GiftService {
 		return new GiftContractListResponse(items);
 	}
 
+	// 증여 계약 취소
+	@Transactional
+	public void cancelGiftContract(Long parentId, Long contractId) {
+		GiftContract contract = giftContractRepository.findByIdAndParentId(contractId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.GIFT_CONTRACT_NOT_FOUND));
+
+		if (contract.getStatus() != com.iduenduen.coreservice.domain.gift.enums.ContractStatus.DRAFT
+			&& contract.getStatus() != com.iduenduen.coreservice.domain.gift.enums.ContractStatus.ACTIVE) {
+			throw new GeneralException(ErrorStatus.GIFT_CONTRACT_NOT_CANCELLABLE);
+		}
+
+		List<GiftTransfer> transfers = giftTransferRepository.findAllByGiftContractIdOrderBySequenceNoAsc(contractId);
+		transfers.stream()
+			.filter(t -> t.getStatus() == com.iduenduen.coreservice.domain.gift.enums.TransferStatus.SCHEDULED)
+			.forEach(GiftTransfer::cancel);
+
+		contract.cancel();
+	}
+
 	// 증여 계약 상세 조회
 	public GiftContractDetailResponse getGiftContractDetail(Long parentId, Long contractId) {
 		GiftContract contract = giftContractRepository.findByIdAndParentId(contractId, parentId)
-			.orElseThrow(() -> new GeneralException(ErrorStatus.NOT_FOUND));
+			.orElseThrow(() -> new GeneralException(ErrorStatus.GIFT_CONTRACT_NOT_FOUND));
 		List<GiftTransfer> transfers = giftTransferRepository.findAllByGiftContractIdOrderBySequenceNoAsc(contractId);
 		return GiftContractDetailResponse.of(contract, transfers);
 	}

@@ -117,4 +117,8 @@ public class GiftContract extends BaseEntity {
 	public void complete() {
 		this.status = ContractStatus.COMPLETED;
 	}
+
+	public void fail() {
+		this.status = ContractStatus.FAILED;
+	}
 }

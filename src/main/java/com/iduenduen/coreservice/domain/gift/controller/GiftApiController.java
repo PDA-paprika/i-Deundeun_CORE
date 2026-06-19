@@ -3,6 +3,7 @@ package com.iduenduen.coreservice.domain.gift.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,5 +46,14 @@ public class GiftApiController {
             @AuthenticationPrincipal Long parentId,
             @PathVariable Long contractId) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, giftService.getGiftContractDetail(parentId, contractId));
+    }
+
+    @Operation(summary = "증여 계약 취소", description = "증여 계약을 취소합니다. DRAFT 또는 ACTIVE 상태만 취소 가능합니다.")
+    @PatchMapping("/contracts/{contractId}/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelGiftContract(
+            @AuthenticationPrincipal Long parentId,
+            @PathVariable Long contractId) {
+        giftService.cancelGiftContract(parentId, contractId);
+        return ApiResponse.success(SuccessStatus.GIFT_CONTRACT_CANCEL_SUCCESS, null);
     }
 }
