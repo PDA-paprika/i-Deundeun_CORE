@@ -2,6 +2,8 @@ package com.iduenduen.coreservice.domain.gift.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateRequest;
+import com.iduenduen.coreservice.domain.gift.dto.GiftContractDetailResponse;
+import com.iduenduen.coreservice.domain.gift.dto.GiftContractListResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftPreviewResponse;
 import com.iduenduen.coreservice.domain.gift.service.GiftService;
 
@@ -22,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/gifts")
 @RequiredArgsConstructor
-public class GiftPreviewController {
+public class GiftApiController {
 
     private final GiftService giftService;
 
@@ -32,5 +36,14 @@ public class GiftPreviewController {
             @AuthenticationPrincipal Long parentId,
             @RequestBody @Valid GiftContractCreateRequest request) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, giftService.preview(parentId, request));
+    }
+
+
+    @Operation(summary = "증여 계약 상세 조회", description = "증여 계약 상세 정보 및 이체 목록을 조회합니다.")
+    @GetMapping("/contracts/{contractId}")
+    public ResponseEntity<ApiResponse<GiftContractDetailResponse>> getGiftContractDetail(
+            @AuthenticationPrincipal Long parentId,
+            @PathVariable Long contractId) {
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, giftService.getGiftContractDetail(parentId, contractId));
     }
 }
