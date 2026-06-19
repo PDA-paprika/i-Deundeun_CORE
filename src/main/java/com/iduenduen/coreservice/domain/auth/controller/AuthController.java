@@ -1,11 +1,12 @@
 package com.iduenduen.coreservice.domain.auth.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,11 +19,11 @@ import com.iduenduen.coreservice.domain.auth.dto.LoginResponse;
 import com.iduenduen.coreservice.domain.auth.dto.PasswordResetRequest;
 import com.iduenduen.coreservice.domain.auth.dto.SignupRequest;
 import com.iduenduen.coreservice.domain.auth.dto.SignupResponse;
-
-import jakarta.validation.Valid;
 import com.iduenduen.coreservice.domain.auth.service.AuthService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -53,6 +54,17 @@ public class AuthController {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, authService.reissue(refreshToken));
     }
 
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> withdraw(
+            @AuthenticationPrincipal Long parentId,
+            @CookieValue(value = "refreshToken", required = false) String refreshToken,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        String accessToken = extractAccessToken(request);
+        authService.withdraw(parentId, accessToken, refreshToken != null ? refreshToken : "", response);
+        return ApiResponse.success(SuccessStatus.SUCCESS_200);
+    }
+
     @PatchMapping("/password")
     public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody @Valid PasswordResetRequest request) {
         authService.resetPassword(request);
@@ -61,12 +73,17 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
             @CookieValue(value = "refreshToken", required = false) String refreshToken,
+            HttpServletRequest request,
             HttpServletResponse response) {
-        String accessToken = (authorization != null && authorization.startsWith("Bearer "))
-                ? authorization.substring(7) : "";
+        String accessToken = extractAccessToken(request);
         authService.logout(accessToken, refreshToken != null ? refreshToken : "", response);
         return ApiResponse.success(SuccessStatus.SUCCESS_200);
+    }
+
+    private String extractAccessToken(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        return (authorization != null && authorization.startsWith("Bearer "))
+                ? authorization.substring(7) : "";
     }
 }
