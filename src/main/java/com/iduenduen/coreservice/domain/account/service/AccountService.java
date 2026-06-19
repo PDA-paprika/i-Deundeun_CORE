@@ -58,7 +58,7 @@ public class AccountService {
             .build();
         accountEtfHistoryRepository.save(history);
 
-        return executionGoalLinkService.createLinkAndConnect(
+        return executionGoalLinkService.createLink(
             req.parentId(), history.getId(), req.childId(), req.goalId(), req.memo());
     }
 }
