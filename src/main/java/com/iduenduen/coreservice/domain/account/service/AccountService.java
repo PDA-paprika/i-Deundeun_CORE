@@ -2,17 +2,16 @@ package com.iduenduen.coreservice.domain.account.service;
 
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
-import com.iduenduen.coreservice.domain.account.dto.AccountBalanceResponse;
-import com.iduenduen.coreservice.domain.account.dto.AccountHoldingsResponse;
-import com.iduenduen.coreservice.domain.account.dto.AccountInfoResponse;
+import com.iduenduen.coreservice.domain.account.dto.*;
 import com.iduenduen.coreservice.domain.account.entity.Account;
+import com.iduenduen.coreservice.domain.account.entity.AccountCashHistory;
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHistory;
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHolding;
 import com.iduenduen.coreservice.domain.account.enums.EtfEventType;
+import com.iduenduen.coreservice.domain.account.repository.AccountCashHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHoldingRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
-import com.iduenduen.coreservice.domain.account.dto.EtfTradeNotificationRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.service.ExecutionGoalLinkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +27,7 @@ public class AccountService {
     private final AccountEtfHistoryRepository accountEtfHistoryRepository;
     private final ExecutionGoalLinkService executionGoalLinkService;
     private final AccountEtfHoldingRepository accountEtfHoldingRepository;
+    private final AccountCashHistoryRepository accountCashHistoryRepository;
 
     public AccountInfoResponse getMyAccount(Long parentId) {
         Account account = accountRepository.findByParentId(parentId)
@@ -82,6 +82,27 @@ public class AccountService {
         return AccountHoldingsResponse.builder()
                 .availableAmt(account.getAvailableAmt())
                 .holdings(holdingDtos)
+                .build();
+    }
+
+    public AccountCashHistoriesResponse getCashHistories(Long accountId) {
+        List<AccountCashHistory> histories = accountCashHistoryRepository
+                .findByAccountIdOrderByOccurredAtDesc(accountId);
+
+        List<AccountCashHistoriesResponse.HistoryDto> dtos = histories.stream()
+                .map(h -> AccountCashHistoriesResponse.HistoryDto.builder()
+                        .id(h.getId())
+                        .eventType(h.getEventType().name())
+                        .amountDelta(h.getAmountDelta())
+                        .balanceAfter(h.getBalanceAfter())
+                        .memo(h.getMemo())
+                        .occurredAt(h.getOccurredAt())
+                        .build())
+                .toList();
+
+        return AccountCashHistoriesResponse.builder()
+                .totalCount(dtos.size())
+                .histories(dtos)
                 .build();
     }
 }
