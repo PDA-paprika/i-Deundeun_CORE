@@ -3,6 +3,7 @@ package com.iduenduen.coreservice.domain.account.controller;
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.account.dto.AccountBalanceResponse;
+import com.iduenduen.coreservice.domain.account.dto.AccountHoldingsResponse;
 import com.iduenduen.coreservice.domain.account.dto.AccountInfoResponse;
 import com.iduenduen.coreservice.domain.account.dto.EtfTradeNotificationRequest;
 import com.iduenduen.coreservice.domain.account.service.AccountService;
@@ -41,5 +42,12 @@ public class AccountController {
             @RequestBody @Valid EtfTradeNotificationRequest req
     ) {
         return ApiResponse.success(SuccessStatus.EXECUTION_LINK_CREATED, accountService.recordTrade(req));
+    }
+
+    @GetMapping("/holdings")
+    @Operation(summary = "보유 ETF 조회", description = "보유 ETF 목록과 예수금을 조회합니다.")
+    public ResponseEntity<ApiResponse<AccountHoldingsResponse>> getHoldings(
+            @RequestParam Long accountId) {
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, accountService.getHoldings(accountId));
     }
 }
