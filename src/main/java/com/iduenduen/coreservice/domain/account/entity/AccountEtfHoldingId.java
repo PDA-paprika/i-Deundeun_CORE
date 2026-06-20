@@ -16,8 +16,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class AccountEtfHoldingId implements Serializable {
 
-    @Column(name = "external_etf_id", nullable = false)
-    private String externalEtfId;
+    @Column(name = "etf_id", nullable = false)
+    private Long etfId;
 
     @Column(name = "account_id", nullable = false)
     private Long accountId;
