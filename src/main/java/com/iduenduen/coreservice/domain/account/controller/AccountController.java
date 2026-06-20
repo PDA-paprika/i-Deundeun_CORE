@@ -2,10 +2,7 @@ package com.iduenduen.coreservice.domain.account.controller;
 
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
-import com.iduenduen.coreservice.domain.account.dto.AccountBalanceResponse;
-import com.iduenduen.coreservice.domain.account.dto.AccountHoldingsResponse;
-import com.iduenduen.coreservice.domain.account.dto.AccountInfoResponse;
-import com.iduenduen.coreservice.domain.account.dto.EtfTradeNotificationRequest;
+import com.iduenduen.coreservice.domain.account.dto.*;
 import com.iduenduen.coreservice.domain.account.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,5 +46,12 @@ public class AccountController {
     public ResponseEntity<ApiResponse<AccountHoldingsResponse>> getHoldings(
             @RequestParam Long accountId) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, accountService.getHoldings(accountId));
+    }
+
+    @GetMapping("/cash-histories")
+    @Operation(summary = "현금 거래 내역 조회", description = "현금 거래 내역을 조회합니다.")
+    public ResponseEntity<ApiResponse<AccountCashHistoriesResponse>> getCashHistories(
+            @RequestParam Long accountId) {
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, accountService.getCashHistories(accountId));
     }
 }
