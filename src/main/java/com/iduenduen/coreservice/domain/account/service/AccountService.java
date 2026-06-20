@@ -3,17 +3,22 @@ package com.iduenduen.coreservice.domain.account.service;
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.account.dto.AccountBalanceResponse;
+import com.iduenduen.coreservice.domain.account.dto.AccountHoldingsResponse;
 import com.iduenduen.coreservice.domain.account.dto.AccountInfoResponse;
 import com.iduenduen.coreservice.domain.account.entity.Account;
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHistory;
+import com.iduenduen.coreservice.domain.account.entity.AccountEtfHolding;
 import com.iduenduen.coreservice.domain.account.enums.EtfEventType;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
+import com.iduenduen.coreservice.domain.account.repository.AccountEtfHoldingRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 import com.iduenduen.coreservice.domain.account.dto.EtfTradeNotificationRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.service.ExecutionGoalLinkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +27,7 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final AccountEtfHistoryRepository accountEtfHistoryRepository;
     private final ExecutionGoalLinkService executionGoalLinkService;
+    private final AccountEtfHoldingRepository accountEtfHoldingRepository;
 
     public AccountInfoResponse getMyAccount(Long parentId) {
         Account account = accountRepository.findByParentId(parentId)
@@ -57,5 +63,25 @@ public class AccountService {
 
         return executionGoalLinkService.createLink(
             req.parentId(), history.getId(), req.childId(), req.goalId(), req.memo());
+    }
+
+    public AccountHoldingsResponse getHoldings(Long accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.ACCOUNT_NOT_FOUND));
+
+        List<AccountEtfHolding> holdings = accountEtfHoldingRepository.findByIdAccountId(accountId);
+
+        List<AccountHoldingsResponse.HoldingDto> holdingDtos = holdings.stream()
+                .map(h -> AccountHoldingsResponse.HoldingDto.builder()
+                        .etfId(h.getId().getEtfId())
+                        .qty(h.getQty())
+                        .avgBuyPrice(h.getAvgBuyPrice())
+                        .build())
+                .toList();
+
+        return AccountHoldingsResponse.builder()
+                .availableAmt(account.getAvailableAmt())
+                .holdings(holdingDtos)
+                .build();
     }
 }

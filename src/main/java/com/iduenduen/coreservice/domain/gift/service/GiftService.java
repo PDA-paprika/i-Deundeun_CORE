@@ -292,7 +292,7 @@ public class GiftService {
 			}
 			case ETF -> {
 				AccountEtfHoldingId holdingId = new AccountEtfHoldingId(
-					String.valueOf(request.externalEtfId()), fromAccount.getAccountId());
+						request.externalEtfId(), fromAccount.getAccountId());
 				accountEtfHoldingRepository.findById(holdingId)
 					.ifPresent(holding -> holding.deductQty(contract.getQty()));
 				transfers.get(0).complete(0, contract.getQty());
@@ -312,7 +312,7 @@ public class GiftService {
 			}
 			case ETF -> {
 				AccountEtfHoldingId holdingId = new AccountEtfHoldingId(
-					String.valueOf(request.externalEtfId()), fromAccount.getAccountId());
+						request.externalEtfId(), fromAccount.getAccountId());
 				int availableQty = accountEtfHoldingRepository.findById(holdingId)
 					.map(h -> h.getQty())
 					.orElse(0);
