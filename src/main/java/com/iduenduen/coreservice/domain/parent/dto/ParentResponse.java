@@ -14,6 +14,9 @@ public class ParentResponse {
     private Long id;
     private String name;
 
+    @JsonProperty("account_number")
+    private String accountNumber;
+
     @JsonProperty("birth_date")
     private LocalDate birthDate;
 
