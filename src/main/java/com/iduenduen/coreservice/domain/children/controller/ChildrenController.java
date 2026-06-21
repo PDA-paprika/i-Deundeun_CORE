@@ -94,6 +94,15 @@ public class ChildrenController {
 		return ApiResponse.success(SuccessStatus.CHILDREN_ALLOWANCE_CONNECT_SUCCESS);
 	}
 
+	@Operation(summary = "아동수당 해지", description = "자녀의 아동수당 연결을 해지합니다.")
+	@DeleteMapping("/{childId}/allowance")
+	public ResponseEntity<ApiResponse<Void>> disconnectAllowance(
+		@AuthenticationPrincipal Long parentId,
+		@PathVariable Long childId) {
+		childrenService.disconnectAllowance(parentId, childId);
+		return ApiResponse.success(SuccessStatus.CHILDREN_ALLOWANCE_DISCONNECT_SUCCESS);
+	}
+
 	@Operation(summary = "아동수당 연결 상태 조회", description = "자녀의 아동수당 연결 여부를 조회합니다.")
 	@GetMapping("/{childId}/allowance")
 	public ResponseEntity<ApiResponse<AllowanceStatusResponse>> getAllowanceStatus(

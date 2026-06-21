@@ -91,6 +91,10 @@ public class Children extends BaseEntity {
 		this.allowanceLinked = true;
 	}
 
+	public void unlinkAllowance() {
+		this.allowanceLinked = false;
+	}
+
 	public void softDelete() {
 		this.deletedAt = LocalDateTime.now();
 	}

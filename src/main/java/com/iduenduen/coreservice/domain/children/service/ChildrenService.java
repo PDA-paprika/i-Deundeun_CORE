@@ -83,6 +83,18 @@ public class ChildrenService {
 		child.linkAllowance();
 	}
 
+	@Transactional
+	public void disconnectAllowance(Long parentId, Long childId) {
+		Children child = childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+
+		if (!child.isAllowanceLinked()) {
+			throw new GeneralException(ErrorStatus.CHILDREN_ALLOWANCE_NOT_LINKED);
+		}
+
+		child.unlinkAllowance();
+	}
+
 	public AllowanceStatusResponse getAllowanceStatus(Long parentId, Long childId) {
 		Children child = childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
