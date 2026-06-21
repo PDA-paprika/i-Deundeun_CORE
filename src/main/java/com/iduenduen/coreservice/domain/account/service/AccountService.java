@@ -105,4 +105,25 @@ public class AccountService {
                 .histories(dtos)
                 .build();
     }
+
+    public AccountEtfHistoriesResponse getEtfHistories(Long accountId) {
+        List<AccountEtfHistory> histories = accountEtfHistoryRepository
+                .findByAccountIdOrderByOccurredAtDesc(accountId);
+
+        List<AccountEtfHistoriesResponse.HistoryDto> dtos = histories.stream()
+                .map(h -> AccountEtfHistoriesResponse.HistoryDto.builder()
+                        .id(h.getId())
+                        .eventType(h.getEventType().name())
+                        .etfNameSnapshot(h.getEtfNameSnapshot())
+                        .qtyDelta(h.getQtyDelta())
+                        .price(h.getPrice())
+                        .occurredAt(h.getOccurredAt())
+                        .build())
+                .toList();
+
+        return AccountEtfHistoriesResponse.builder()
+                .totalCount(dtos.size())
+                .histories(dtos)
+                .build();
+    }
 }
