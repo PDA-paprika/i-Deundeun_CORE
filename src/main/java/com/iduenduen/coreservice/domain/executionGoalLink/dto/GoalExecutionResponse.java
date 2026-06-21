@@ -28,11 +28,11 @@ public record GoalExecutionResponse(
 
     String memo,
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy.MM.dd HH:mm:ss")
     @JsonProperty("occurred_at")
     LocalDateTime occurredAt,
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy.MM.dd HH:mm:ss")
     @JsonProperty("linked_at")
     LocalDateTime linkedAt
 ) {
