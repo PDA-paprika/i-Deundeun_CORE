@@ -54,4 +54,11 @@ public class AccountController {
             @RequestParam Long accountId) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, accountService.getCashHistories(accountId));
     }
+
+    @GetMapping("/etf-histories")
+    @Operation(summary = "ETF 거래 내역 조회", description = "ETF 거래 내역을 조회합니다.")
+    public ResponseEntity<ApiResponse<AccountEtfHistoriesResponse>> getEtfHistories(
+            @RequestParam Long accountId) {
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, accountService.getEtfHistories(accountId));
+    }
 }

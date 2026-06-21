@@ -44,6 +44,9 @@ public class AccountEtfHistory {
     @Column(name = "reference_type", length = 20)
     private ReferenceType referenceType;
 
+    @Column(name = "etf_name_snapshot", length = 100)
+    private String etfNameSnapshot;
+
     @Column(name = "memo", length = 500)
     private String memo;
 
@@ -57,7 +60,7 @@ public class AccountEtfHistory {
     @Builder
     public AccountEtfHistory(Long accountId, EtfEventType eventType, String externalEtfId,
                               int qtyDelta, long price, String referenceId,
-                              ReferenceType referenceType, String memo, LocalDateTime occurredAt) {
+                              ReferenceType referenceType, String etfNameSnapshot, String memo, LocalDateTime occurredAt) {
         this.accountId = accountId;
         this.eventType = eventType;
         this.externalEtfId = externalEtfId;
@@ -65,6 +68,7 @@ public class AccountEtfHistory {
         this.price = price;
         this.referenceId = referenceId;
         this.referenceType = referenceType;
+        this.etfNameSnapshot = etfNameSnapshot;
         this.memo = memo;
         this.occurredAt = occurredAt;
     }
