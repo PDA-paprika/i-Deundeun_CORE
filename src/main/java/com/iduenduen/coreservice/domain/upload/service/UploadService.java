@@ -25,16 +25,21 @@ public class UploadService {
     private static final Set<String> PROFILE_ALLOWED_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
 
     private final S3Presigner s3Presigner;
-    private final String bucket;
+    private final String certBucket;
+    private final String profileBucket;
 
-    public UploadService(S3Presigner s3Presigner, @Value("${cloud.aws.s3.bucket:}") String bucket) {
+    public UploadService(S3Presigner s3Presigner,
+                         @Value("${cloud.aws.s3.cert-bucket:}") String certBucket,
+                         @Value("${cloud.aws.s3.profile-bucket:}") String profileBucket) {
         this.s3Presigner = s3Presigner;
-        this.bucket = bucket;
+        this.certBucket = certBucket;
+        this.profileBucket = profileBucket;
     }
 
     public PresignedUrlResponse generatePresignedUrl(PresignedUrlRequest request) {
         validateRequest(request);
 
+        String bucket = "profile".equals(request.getFileType()) ? profileBucket : certBucket;
         String key = request.getFileType() + "/" + UUID.randomUUID() + "_" + request.getFileName();
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
