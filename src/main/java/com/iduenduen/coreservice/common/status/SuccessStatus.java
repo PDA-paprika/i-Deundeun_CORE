@@ -30,6 +30,7 @@ public enum SuccessStatus implements BaseStatus {
      */
     GIFT_CONTRACT_CREATE_SUCCESS("GIFT_201", HttpStatus.CREATED, "증여 계약이 등록되었습니다."),
     GIFT_CONTRACT_CANCEL_SUCCESS("GIFT_200", HttpStatus.OK, "증여 계약이 취소되었습니다."),
+    GIFT_CONTRACT_TITLE_UPDATE_SUCCESS("GIFT_200_01", HttpStatus.OK, "증여 계약 메모가 수정되었습니다."),
 
 
     /**
