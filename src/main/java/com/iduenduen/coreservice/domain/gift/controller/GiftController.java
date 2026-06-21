@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateRequest;
+import com.iduenduen.coreservice.domain.gift.dto.GiftTitleUpdateRequest;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractDetailResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractListResponse;
@@ -82,6 +83,16 @@ public class GiftController {
 		@AuthenticationPrincipal Long parentId,
 		@PathVariable Long contractId) {
 		return ApiResponse.success(SuccessStatus.SUCCESS_200, giftService.getGiftContractDetail(parentId, contractId));
+	}
+
+	@Operation(summary = "증여 계약 메모 수정", description = "증여 계약의 메모(title)를 수정합니다.")
+	@PatchMapping("/contracts/{contractId}/title")
+	public ResponseEntity<ApiResponse<Void>> updateContractTitle(
+		@AuthenticationPrincipal Long parentId,
+		@PathVariable Long contractId,
+		@RequestBody @Valid GiftTitleUpdateRequest request) {
+		giftService.updateContractTitle(parentId, contractId, request.getTitle());
+		return ApiResponse.success(SuccessStatus.GIFT_CONTRACT_TITLE_UPDATE_SUCCESS, null);
 	}
 
 	@Operation(summary = "증여 계약 취소", description = "증여 계약을 취소합니다. DRAFT 또는 ACTIVE 상태만 취소 가능합니다.")

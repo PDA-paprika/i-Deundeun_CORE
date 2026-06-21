@@ -105,6 +105,10 @@ public class GiftContract extends BaseEntity {
 		this.discountRate = discountRate != null ? discountRate : DEFAULT_DISCOUNT_RATE;
 	}
 
+	public void updateTitle(String title) {
+		this.title = title;
+	}
+
 	public void activate() {
 		this.status = ContractStatus.ACTIVE;
 	}
