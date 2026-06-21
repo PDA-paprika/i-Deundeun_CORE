@@ -2,6 +2,7 @@ package com.iduenduen.coreservice.domain.parent.dto;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
@@ -13,6 +14,7 @@ public class ParentUpdateRequest {
 
     private String name;
 
+    @JsonFormat(pattern = "yyyy.MM.dd")
     @JsonProperty("birth_date")
     private LocalDate birthDate;
 

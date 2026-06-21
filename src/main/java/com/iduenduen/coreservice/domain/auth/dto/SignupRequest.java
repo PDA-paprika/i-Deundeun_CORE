@@ -3,6 +3,7 @@ package com.iduenduen.coreservice.domain.auth.dto;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.iduenduen.coreservice.domain.onboarding.enums.AgreementType;
 
@@ -30,6 +31,7 @@ public class SignupRequest {
 
     private String name;
 
+    @JsonFormat(pattern = "yyyy.MM.dd")
     @JsonProperty("birth_date")
     private LocalDate birthDate;
 
