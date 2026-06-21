@@ -26,11 +26,11 @@ public record UnlinkedExecutionResponse(
 
     long price,
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy.MM.dd HH:mm:ss")
     @JsonProperty("occurred_at")
     LocalDateTime occurredAt,
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy.MM.dd HH:mm:ss")
     @JsonProperty("created_at")
     LocalDateTime createdAt
 ) {

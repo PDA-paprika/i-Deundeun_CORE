@@ -12,12 +12,12 @@ public record ChildrenCreateResponse(
 
 	Long id,
 
-	@JsonFormat(pattern = "yyyy-MM-dd")
 	@JsonProperty("parent_id")
 	Long parentId,
 
 	String name,
 
+	@JsonFormat(pattern = "yyyy.MM.dd")
 	@JsonProperty("birth_date")
 	LocalDate birthDate,
 

@@ -31,7 +31,7 @@ public record GiftContractCreateRequest(
 	LocalDate startDate,
 
 	// INSTALLMENT 전용: 종료 연월 (yyyy-MM)
-	@JsonFormat(pattern = "yyyy-MM")
+	@JsonFormat(pattern = "yyyy.MM")
 	@JsonProperty("end_month")
 	YearMonth endMonth,
 
