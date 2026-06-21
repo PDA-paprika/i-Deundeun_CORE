@@ -2,9 +2,8 @@ package com.iduenduen.coreservice.domain.goals.dto;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.iduenduen.coreservice.common.util.FlexibleLocalDateDeserializer;
 import com.iduenduen.coreservice.domain.goals.enums.GoalType;
 
 import jakarta.validation.constraints.NotNull;
@@ -29,7 +28,7 @@ public record GoalCreateRequest(
     Long targetAmount,
 
     @NotNull
-    @JsonDeserialize(using = FlexibleLocalDateDeserializer.class)
+    @JsonFormat(pattern = "yyyy.MM.dd")
     @JsonProperty("target_date")
     LocalDate targetDate
 ) {}
