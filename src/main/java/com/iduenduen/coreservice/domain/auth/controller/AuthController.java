@@ -34,8 +34,10 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<SignupResponse>> signup(@RequestBody SignupRequest request) {
-        return ApiResponse.success(SuccessStatus.SUCCESS_201, authService.signup(request));
+    public ResponseEntity<ApiResponse<SignupResponse>> signup(
+            @RequestBody SignupRequest request,
+            HttpServletResponse response) {
+        return ApiResponse.success(SuccessStatus.SUCCESS_201, authService.signup(request, response));
     }
 
     @PostMapping("/login")

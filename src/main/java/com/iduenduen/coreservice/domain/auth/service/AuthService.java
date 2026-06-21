@@ -45,7 +45,7 @@ public class AuthService {
     private final StringRedisTemplate redisTemplate;
 
     @Transactional
-    public SignupResponse signup(SignupRequest request) {
+    public SignupResponse signup(SignupRequest request, HttpServletResponse response) {
         if (request.getEmail() == null || request.getPassword() == null || request.getAccountNumber() == null
                 || request.getName() == null || request.getBirthDate() == null || request.getRelation() == null
                 || request.getRegion() == null || request.getChildCount() == null
@@ -87,7 +87,30 @@ public class AuthService {
                 .toList();
         userAgreementRepository.saveAll(agreements);
 
-        return SignupResponse.builder().parentId(saved.getId()).build();
+        String accessToken = jwtProvider.createAccessToken(saved.getId());
+        String refreshToken = jwtProvider.createRefreshToken(saved.getId());
+
+        redisTemplate.opsForValue().set(
+                "refresh:" + saved.getId(),
+                refreshToken,
+                jwtProvider.getRefreshTokenExpirationMs(),
+                TimeUnit.MILLISECONDS
+        );
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(jwtProvider.getRefreshTokenExpirationMs() / 1000)
+                .sameSite("Lax")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return SignupResponse.builder()
+                .parentId(saved.getId())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     private void validateAgreements(List<SignupRequest.AgreementItem> agreements) {

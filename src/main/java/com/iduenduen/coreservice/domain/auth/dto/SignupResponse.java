@@ -11,4 +11,10 @@ public class SignupResponse {
 
     @JsonProperty("parent_id")
     private Long parentId;
+
+    @JsonProperty("access_token")
+    private String accessToken;
+
+    @JsonProperty("refresh_token")
+    private String refreshToken;
 }

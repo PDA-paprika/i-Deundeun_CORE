@@ -29,6 +29,7 @@ public class ParentService {
         return ParentResponse.builder()
                 .id(parent.getId())
                 .name(parent.getName())
+                .accountNumber(parent.getAccountNumber())
                 .birthDate(parent.getBirthDate())
                 .relation(parent.getRelation())
                 .region(parent.getRegion())
