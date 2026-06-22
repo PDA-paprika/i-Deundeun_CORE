@@ -1,5 +1,6 @@
 package com.iduenduen.coreservice.domain.parent.service;
 
+import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import com.iduenduen.coreservice.domain.parent.dto.SelectedChildResponse;
 import com.iduenduen.coreservice.domain.parent.dto.WizardProfileRequest;
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
+import com.iduenduen.coreservice.domain.account.entity.Account;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,12 +24,17 @@ import lombok.RequiredArgsConstructor;
 public class ParentService {
 
     private final ParentRepository parentRepository;
+    private final AccountRepository accountRepository;
 
     public ParentResponse getMe(Long parentId) {
         Parent parent = findActiveParent(parentId);
+        Long accountId = accountRepository.findByParentId(parentId)
+                .map(Account::getAccountId)
+                .orElse(null);
 
         return ParentResponse.builder()
                 .id(parent.getId())
+                .accountId(accountId)
                 .name(parent.getName())
                 .accountNumber(parent.getAccountNumber())
                 .birthDate(parent.getBirthDate())
