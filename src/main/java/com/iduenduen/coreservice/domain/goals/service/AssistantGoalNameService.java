@@ -26,7 +26,7 @@ public class AssistantGoalNameService {
         GoalType goalType1 = Arrays.stream(GoalType.values())
             .filter(t -> t.getCode() == request.goalType1())
             .findFirst()
-            .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+            .orElseThrow(() -> new GeneralException(ErrorStatus.ASSISTANT_GOAL_NAME_INVALID_TYPE));
 
         AssistantGoalName entity = AssistantGoalName.builder()
             .parentId(parentId)
