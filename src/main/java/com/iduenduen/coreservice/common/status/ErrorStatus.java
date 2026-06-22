@@ -85,6 +85,11 @@ public enum ErrorStatus implements BaseStatus {
     INVALID_FILE_TYPE("UPLOAD_400", HttpStatus.BAD_REQUEST, "허용되지 않는 파일 형식입니다."),
 
     /**
+     * AssistantGoalNames
+     */
+    ASSISTANT_GOAL_NAME_INVALID_TYPE("ASSISTANT_400", HttpStatus.BAD_REQUEST, "유효하지 않은 goal_type1 코드입니다."),
+
+    /**
      * Execution Goal Links
      */
     EXECUTION_LINK_NOT_FOUND("EXEC_404", HttpStatus.NOT_FOUND, "존재하지 않는 체결 링크입니다."),
