@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -25,6 +26,10 @@ import com.iduenduen.coreservice.domain.onboarding.repository.UserAgreementRepos
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
 
+import com.iduenduen.coreservice.domain.account.entity.Account;
+import com.iduenduen.coreservice.domain.account.enums.AccountType;
+import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
+
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +43,7 @@ public class AuthService {
             .toList();
 
     private final ParentRepository parentRepository;
+    private final AccountRepository accountRepository;
     private final UserAgreementRepository userAgreementRepository;
     private final EmailVerificationService emailVerificationService;
     private final PasswordEncoder passwordEncoder;
@@ -77,6 +83,14 @@ public class AuthService {
                 .build();
 
         Parent saved = parentRepository.save(parent);
+
+        Account account = Account.builder()
+                .parentId(saved.getId())
+                .accountType(AccountType.PARENT)
+                .accountNumber(request.getAccountNumber())
+                .availableAmt(50_000_000L)
+                .build();
+        accountRepository.save(account);
 
         List<UserAgreement> agreements = request.getAgreements().stream()
                 .map(a -> UserAgreement.builder()
