@@ -13,6 +13,7 @@ public record AssistantGoalNameCreateRequest(
     @JsonProperty("goal_type2")
     Integer goalType2,
 
+    @NotNull
     @JsonProperty("goal_type3")
     Integer goalType3,
 
