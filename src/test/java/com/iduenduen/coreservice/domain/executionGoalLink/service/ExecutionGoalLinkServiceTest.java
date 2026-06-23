@@ -56,7 +56,7 @@ class ExecutionGoalLinkServiceTest {
         history = AccountEtfHistory.builder()
             .accountId(1L)
             .eventType(EtfEventType.BUY)
-            .externalEtfId("ETF001")
+            .etfId("ETF001")
             .qtyDelta(3)
             .price(50_000L)
             .occurredAt(LocalDateTime.now())
@@ -116,7 +116,7 @@ class ExecutionGoalLinkServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).id()).isEqualTo(LINK_ID);
-        assertThat(result.get(0).externalEtfId()).isEqualTo("ETF001");
+        assertThat(result.get(0).EtfId()).isEqualTo("ETF001");
     }
 
     @Test
@@ -178,7 +178,7 @@ class ExecutionGoalLinkServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).childId()).isEqualTo(CHILD_ID);
-        assertThat(result.get(0).externalEtfId()).isEqualTo("ETF001");
+        assertThat(result.get(0).EtfId()).isEqualTo("ETF001");
     }
 
     @Test

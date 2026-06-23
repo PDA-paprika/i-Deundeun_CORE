@@ -90,7 +90,7 @@ public class AccountService {
         AccountEtfHistory history = AccountEtfHistory.builder()
                 .accountId(req.accountId())
                 .eventType(req.eventType())
-                .externalEtfId(req.externalEtfId())
+                .etfId(req.etfId())
                 .qtyDelta(qtyDelta)
                 .price(req.price())
                 .referenceId(req.referenceId())
