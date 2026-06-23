@@ -5,6 +5,7 @@ set -e
 DOCKER_USERNAME=$1
 IMAGE_TAG=$2
 
+
 IMAGE_NAME="$DOCKER_USERNAME/ideundeun-core:$IMAGE_TAG"
 
 BLUE_NAME="core-blue"
