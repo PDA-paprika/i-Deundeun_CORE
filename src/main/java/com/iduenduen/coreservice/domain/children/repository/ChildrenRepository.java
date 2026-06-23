@@ -9,6 +9,8 @@ import com.iduenduen.coreservice.domain.children.entity.Children;
 
 public interface ChildrenRepository extends JpaRepository<Children, Long> {
 
+	List<Children> findAllByParentId(Long parentId);
+
 	boolean existsByParentIdAndNameAndDeletedAtIsNull(Long parentId, String name);
 
 	List<Children> findAllByParentIdAndDeletedAtIsNull(Long parentId);
