@@ -1,0 +1,11 @@
+services:
+  core-blue:
+    image: ${DOCKER_USERNAME}/ideundeun-core:${IMAGE_TAG}
+    container_name: core-blue
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - /home/ubuntu/app/application.yml:/app/application.yml
+    environment:
+      SPRING_CONFIG_LOCATION: /app/application.yml
+    restart: always
