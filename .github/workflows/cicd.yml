@@ -64,9 +64,11 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Docker 이미지 빌드 및 Push
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/ideundeun-core:${{ github.sha }} .
-          docker push ${{ secrets.DOCKER_USERNAME }}/ideundeun-core:${{ github.sha }}
+          docker build -t "${DOCKER_USERNAME}/ideundeun-core:${{ github.sha }}" .
+          docker push "${DOCKER_USERNAME}/ideundeun-core:${{ github.sha }}"
 
       - name: SSH 키 세팅
         run: |
