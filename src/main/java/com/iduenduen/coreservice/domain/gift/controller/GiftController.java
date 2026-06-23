@@ -36,11 +36,12 @@ public class GiftController {
 	private final GiftService giftService;
 
 	@Operation(summary = "증여 예상 정보 계산", description = "증여 등록 전 예상 정보를 계산합니다.")
-	@PostMapping("/preview")
+	@PostMapping("/{childId}/preview")
 	public ResponseEntity<ApiResponse<GiftPreviewResponse>> preview(
 		@AuthenticationPrincipal Long parentId,
+		@PathVariable Long childId,
 		@RequestBody @Valid GiftContractCreateRequest request) {
-		return ApiResponse.success(SuccessStatus.SUCCESS_200, giftService.preview(parentId, request));
+		return ApiResponse.success(SuccessStatus.SUCCESS_200, giftService.preview(parentId, childId, request));
 	}
 
 	@Operation(summary = "증여 계약 등록", description = "자녀에게 증여 계약을 등록합니다.")

@@ -162,16 +162,28 @@ public class GiftService {
 	}
 
 	// 증여 예상 정보 계산
-	public GiftPreviewResponse preview(Long parentId, GiftContractCreateRequest request) {
+	public GiftPreviewResponse preview(Long parentId, Long childId, GiftContractCreateRequest request) {
+		var child = childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
 		validateRequest(request);
 		Account fromAccount = accountRepository.findByParentId(parentId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.ACCOUNT_NOT_FOUND));
 		validateAssets(fromAccount, request);
-		return calculatePreview(request);
+		long remainingTaxFreeLimit = calculateRemainingTaxFreeLimit(childId, child.getAge());
+		return calculatePreview(request, remainingTaxFreeLimit);
+	}
+
+	// 미성년(19세 미만): 2000만원, 성인: 5000만원 (10년 누계)
+	private long calculateRemainingTaxFreeLimit(Long childId, int age) {
+		long limit = age < 19 ? 20_000_000L : 50_000_000L;
+		LocalDate tenYearsAgo = LocalDate.now().minusYears(10);
+		long used = giftTransferRepository.sumTransferredCashAmtByChildIdAndStatusAndScheduledDateAfter(
+			childId, com.iduenduen.coreservice.domain.gift.enums.TransferStatus.COMPLETED, tenYearsAgo);
+		return Math.max(0L, limit - used);
 	}
 
 	// preview와 등록에서 공통으로 사용하는 계산 로직
-	private GiftPreviewResponse calculatePreview(GiftContractCreateRequest request) {
+	private GiftPreviewResponse calculatePreview(GiftContractCreateRequest request, long remainingTaxFreeLimit) {
 		LocalDate firstDate = resolveStartDate(request);
 		LocalDate lastDate = resolveEndDate(request);
 
@@ -186,7 +198,8 @@ public class GiftService {
 					request.cashAmount() * transferCount,
 					transferCount,
 					firstDate,
-					lastDate
+					lastDate,
+					remainingTaxFreeLimit
 				);
 			}
 			case ONE_TIME -> new GiftPreviewResponse(
@@ -196,7 +209,8 @@ public class GiftService {
 				request.cashAmount(),
 				1,
 				firstDate,
-				null
+				null,
+				remainingTaxFreeLimit
 			);
 			case ETF -> new GiftPreviewResponse(
 				request.giftType(),
@@ -205,7 +219,8 @@ public class GiftService {
 				0L,
 				1,
 				firstDate,
-				null
+				null,
+				remainingTaxFreeLimit
 			);
 		};
 	}
@@ -226,7 +241,7 @@ public class GiftService {
 		validateRequest(request);
 		validateAssets(fromAccount, request);
 
-		GiftPreviewResponse preview = calculatePreview(request);
+		GiftPreviewResponse preview = calculatePreview(request, 0L);
 
 		GiftContract contract = GiftContract.builder()
 			.parentId(parentId)
