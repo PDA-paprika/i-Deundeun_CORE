@@ -51,4 +51,8 @@ public class Account {
     public void deductCash(long amount) {
         this.availableAmt -= amount;
     }
+
+    public void addCash(long amount) {
+        this.availableAmt += amount;
+    }
 }
