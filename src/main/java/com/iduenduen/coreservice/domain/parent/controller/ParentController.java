@@ -21,6 +21,8 @@ import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateRequest;
 import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateResponse;
 import com.iduenduen.coreservice.domain.parent.dto.SelectedChildRequest;
 import com.iduenduen.coreservice.domain.parent.dto.SelectedChildResponse;
+import com.iduenduen.coreservice.domain.parent.dto.StatsKorRequest;
+import com.iduenduen.coreservice.domain.parent.dto.StatsKorResponse;
 import com.iduenduen.coreservice.domain.parent.dto.WizardProfileRequest;
 import com.iduenduen.coreservice.domain.parent.service.ParentService;
 
@@ -77,6 +79,12 @@ public class ParentController {
     @PostMapping("/recluster")
     public ResponseEntity<ApiResponse<Integer>> recluster(@AuthenticationPrincipal Long parentId) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.recluster(parentId));
+    }
+
+    @PostMapping("/stats/kor")
+    public ResponseEntity<ApiResponse<StatsKorResponse>> getStatsKor(
+            @RequestBody StatsKorRequest request) {
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.getStatsKor(request));
     }
 
     @GetMapping("/holdings")

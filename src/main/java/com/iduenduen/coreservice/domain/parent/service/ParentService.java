@@ -28,6 +28,8 @@ import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.goals.repository.GoalFrequencyProjection;
 import com.iduenduen.coreservice.domain.parent.dto.ParentFrequencyRequest;
 import com.iduenduen.coreservice.domain.parent.dto.ParentFrequencyResponse;
+import com.iduenduen.coreservice.domain.parent.dto.StatsKorRequest;
+import com.iduenduen.coreservice.domain.parent.dto.StatsKorResponse;
 import com.iduenduen.coreservice.domain.parent.dto.ParentResponse;
 import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateRequest;
 import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateResponse;
@@ -199,6 +201,17 @@ public class ParentService {
         log.info("[Parent] cluster_value 업데이트 완료 - parentId={}, clusterValue={}", parentId, returnedCluster);
 
         return returnedCluster;
+    }
+
+    public StatsKorResponse getStatsKor(StatsKorRequest request) {
+        log.info("[Parent] 국가통계 조회 - goalType1={}, goalType2={}, goalType3={}",
+                request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
+
+        return restClient.post()
+                .uri(assistantServiceUrl + "/state/kor")
+                .body(request)
+                .retrieve()
+                .body(StatsKorResponse.class);
     }
 
     public List<ParentFrequencyResponse> getFrequency(ParentFrequencyRequest request) {
