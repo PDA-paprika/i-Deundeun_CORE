@@ -1,5 +1,6 @@
 package com.iduenduen.coreservice.domain.children.controller;
 
+import com.iduenduen.coreservice.domain.children.dto.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,12 +18,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
-import com.iduenduen.coreservice.domain.children.dto.AllowanceStatusResponse;
-import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateRequest;
-import com.iduenduen.coreservice.domain.children.dto.ChildrenCreateResponse;
-import com.iduenduen.coreservice.domain.children.dto.ChildrenDetailResponse;
-import com.iduenduen.coreservice.domain.children.dto.ChildrenListResponse;
-import com.iduenduen.coreservice.domain.children.dto.ChildrenUpdateRequest;
 import com.iduenduen.coreservice.domain.children.service.ChildrenService;
 
 import jakarta.validation.Valid;
@@ -134,5 +129,13 @@ public class ChildrenController {
 		@RequestBody @Valid ChildrenCreateRequest request) {
 		return ApiResponse.success(SuccessStatus.CHILDREN_REGISTER_SUCCESS,
 			childrenService.registerChild(parentId, request));
+	}
+
+	@GetMapping("/{childId}/holdings")
+	@Operation(summary = "자녀 보유 ETF 조회", description = "자녀의 보유 ETF 목록을 조회합니다.")
+	public ResponseEntity<ApiResponse<ChildHoldingsResponse>> getChildHoldings(
+			@AuthenticationPrincipal Long parentId,
+			@PathVariable Long childId) {
+		return ApiResponse.success(SuccessStatus.SUCCESS_200, childrenService.getHoldings(parentId, childId));
 	}
 }
