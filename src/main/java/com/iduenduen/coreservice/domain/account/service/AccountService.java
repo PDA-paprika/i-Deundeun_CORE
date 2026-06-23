@@ -3,10 +3,7 @@ package com.iduenduen.coreservice.domain.account.service;
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.account.dto.*;
-import com.iduenduen.coreservice.domain.account.entity.Account;
-import com.iduenduen.coreservice.domain.account.entity.AccountCashHistory;
-import com.iduenduen.coreservice.domain.account.entity.AccountEtfHistory;
-import com.iduenduen.coreservice.domain.account.entity.AccountEtfHolding;
+import com.iduenduen.coreservice.domain.account.entity.*;
 import com.iduenduen.coreservice.domain.account.enums.EtfEventType;
 import com.iduenduen.coreservice.domain.account.repository.AccountCashHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
@@ -46,23 +43,65 @@ public class AccountService {
 
     @Transactional
     public Long recordTrade(EtfTradeNotificationRequest req) {
+        Account account = accountRepository.findById(req.accountId())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.ACCOUNT_NOT_FOUND));
+
+        long tradeAmount = (long) req.qty() * req.price();
         int qtyDelta = req.eventType() == EtfEventType.SELL ? -req.qty() : req.qty();
 
+        // 예수금 업데이트
+        if (req.eventType() == EtfEventType.BUY) {
+            account.deductCash(tradeAmount);
+        } else if (req.eventType() == EtfEventType.SELL) {
+            account.addCash(tradeAmount);
+        }
+
+        // 보유 ETF upsert
+        AccountEtfHoldingId holdingId = new AccountEtfHoldingId(req.etfId(), req.accountId());
+        AccountEtfHolding holding = accountEtfHoldingRepository.findById(holdingId)
+                .orElse(null);
+
+        if (req.eventType() == EtfEventType.BUY) {
+            if (holding == null) {
+                holding = AccountEtfHolding.builder()
+                        .id(holdingId)
+                        .qty(req.qty())
+                        .avgBuyPrice(req.price())
+                        .build();
+            } else {
+                long totalCost = holding.getAvgBuyPrice() * holding.getQty() + tradeAmount;
+                int newQty = holding.getQty() + req.qty();
+                holding.update(newQty, totalCost / newQty);
+            }
+            accountEtfHoldingRepository.save(holding);
+        } else if (req.eventType() == EtfEventType.SELL) {
+            if (holding != null) {
+                int newQty = holding.getQty() - req.qty();
+                if (newQty <= 0) {
+                    accountEtfHoldingRepository.delete(holding);
+                } else {
+                    holding.update(newQty, holding.getAvgBuyPrice());
+                    accountEtfHoldingRepository.save(holding);
+                }
+            }
+        }
+
+        // 히스토리 저장
         AccountEtfHistory history = AccountEtfHistory.builder()
-            .accountId(req.accountId())
-            .eventType(req.eventType())
-            .externalEtfId(req.externalEtfId())
-            .qtyDelta(qtyDelta)
-            .price(req.price())
-            .referenceId(req.referenceId())
-            .referenceType(req.referenceType())
-            .memo(req.memo())
-            .occurredAt(req.occurredAt())
-            .build();
+                .accountId(req.accountId())
+                .eventType(req.eventType())
+                .externalEtfId(req.externalEtfId())
+                .qtyDelta(qtyDelta)
+                .price(req.price())
+                .referenceId(req.referenceId())
+                .referenceType(req.referenceType())
+                .memo(req.memo())
+                .occurredAt(req.occurredAt())
+                .build();
         accountEtfHistoryRepository.save(history);
 
         return executionGoalLinkService.createLink(
-            req.parentId(), history.getId(), req.childId(), req.goalId(), req.memo());
+                req.parentId(), history.getId(), req.childId(), req.goalId(), req.memo());
     }
 
     public AccountHoldingsResponse getHoldings(Long accountId) {

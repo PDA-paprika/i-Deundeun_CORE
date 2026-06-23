@@ -23,6 +23,9 @@ public record EtfTradeNotificationRequest(
     @JsonProperty("event_type")
     EtfEventType eventType,
 
+    @JsonProperty("etf_id")
+    Long etfId,
+
     @NotNull
     @JsonProperty("external_etf_id")
     String externalEtfId,
