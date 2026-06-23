@@ -9,4 +9,6 @@ public interface ExecutionGoalLinkRepository extends JpaRepository<ExecutionGoal
     List<ExecutionGoalLink> findByParentIdAndLinkedAtIsNullOrderByCreatedAtDesc(Long parentId);
 
     List<ExecutionGoalLink> findByGoalIdOrderByCreatedAtDesc(Long goalId);
+
+    List<ExecutionGoalLink> findAllByParentId(Long parentId);
 }

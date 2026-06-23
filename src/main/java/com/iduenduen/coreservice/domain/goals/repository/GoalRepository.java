@@ -21,4 +21,6 @@ public interface GoalRepository extends JpaRepository<Goal, Long> {
 
     // FAILED 탐색
     List<Goal> findAllByStatusAndTargetDateBefore(GoalStatus status, LocalDate date);
+
+    List<Goal> findAllByParentId(Long parentId);
 }
