@@ -54,7 +54,8 @@ public class AuthService {
     public SignupResponse signup(SignupRequest request, HttpServletResponse response) {
         if (request.getEmail() == null || request.getPassword() == null || request.getAccountNumber() == null
                 || request.getName() == null || request.getBirthDate() == null || request.getRelation() == null
-                || request.getRegion() == null || request.getChildCount() == null) {
+                || request.getRegion() == null || request.getChildCount() == null
+                || request.getCertFileUrl() == null || request.getCertFileUrl().isBlank()) {
             throw new GeneralException(ErrorStatus.BAD_REQUEST);
         }
 
@@ -78,7 +79,7 @@ public class AuthService {
                 .relation(request.getRelation())
                 .region(request.getRegion())
                 .childCount(request.getChildCount())
-                .certFileUrl(request.getCertFileUrl() != null ? request.getCertFileUrl() : "")
+                .certFileUrl(request.getCertFileUrl())
                 .build();
 
         Parent saved = parentRepository.save(parent);
