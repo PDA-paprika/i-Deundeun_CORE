@@ -65,10 +65,9 @@ public class ParentService {
                 .region(parent.getRegion())
                 .childCount(parent.getChildCount())
                 .profileImageUrl(parent.getProfileImageUrl())
-                .incomeLevel(parent.getIncomeLevel())
-                .assetRange(parent.getAssetRange())
-                .educationHeat(parent.getEducationHeat())
-                .dualIncome(parent.getDualIncome())
+                .monthlyHouseholdIncome(parent.getMonthlyHouseholdIncome())
+                .parentEconomicActivity(parent.getParentEconomicActivity())
+                .educationLevel(parent.getEducationLevel())
                 .clusterValue(parent.getClusterValue())
                 .selectedChildId(parent.getSelectedChildId())
                 .build();
@@ -113,11 +112,11 @@ public class ParentService {
         Parent parent = findActiveParent(parentId);
 
         parent.updateWizardProfile(
-                request.getIncomeLevel(),
-                request.getAssetRange(),
-                request.getEducationHeat(),
-                request.getDualIncome()
+                request.getMonthlyHouseholdIncome(),
+                request.getParentEconomicActivity(),
+                request.getEducationLevel()
         );
+
     }
 
     @Transactional
