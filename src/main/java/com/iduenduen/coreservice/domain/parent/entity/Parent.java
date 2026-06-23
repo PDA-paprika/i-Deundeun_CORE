@@ -60,17 +60,14 @@ public class Parent extends BaseEntity {
     @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;
 
-    @Column(name = "income_level", length = 20)
-    private String incomeLevel;
+    @Column(name = "monthly_household_income")
+    private Integer monthlyHouseholdIncome;
 
-    @Column(name = "asset_range", length = 30)
-    private String assetRange;
+    @Column(name = "parent_economic_activity")
+    private Integer parentEconomicActivity;
 
-    @Column(name = "education_heat")
-    private Integer educationHeat;
-
-    @Column(name = "dual_income")
-    private Boolean dualIncome;
+    @Column(name = "education_level")
+    private Integer educationLevel;
 
     @Column(name = "cluster_value")
     private Integer clusterValue;
@@ -84,8 +81,8 @@ public class Parent extends BaseEntity {
     @Builder
     public Parent(String email, String accountNumber, Long selectedChildId, String passwordHash,
                   String name, LocalDate birthDate, String relation, String region, Integer childCount,
-                  String profileImageUrl, String incomeLevel, String assetRange, Integer educationHeat,
-                  Boolean dualIncome, Integer clusterValue, String certFileUrl) {
+                  String profileImageUrl, Integer monthlyHouseholdIncome, Integer parentEconomicActivity,
+                  Integer educationLevel, Integer clusterValue, String certFileUrl) {
         this.email = email;
         this.accountNumber = accountNumber;
         this.selectedChildId = selectedChildId;
@@ -96,10 +93,9 @@ public class Parent extends BaseEntity {
         this.region = region;
         this.childCount = childCount;
         this.profileImageUrl = profileImageUrl;
-        this.incomeLevel = incomeLevel;
-        this.assetRange = assetRange;
-        this.educationHeat = educationHeat;
-        this.dualIncome = dualIncome;
+        this.monthlyHouseholdIncome = monthlyHouseholdIncome;
+        this.parentEconomicActivity = parentEconomicActivity;
+        this.educationLevel = educationLevel;
         this.clusterValue = clusterValue;
         this.certFileUrl = certFileUrl;
     }
@@ -118,12 +114,10 @@ public class Parent extends BaseEntity {
         this.selectedChildId = selectedChildId;
     }
 
-    public void updateWizardProfile(String incomeLevel, String assetRange, Integer educationHeat,
-                                     Boolean dualIncome) {
-        this.incomeLevel = incomeLevel;
-        this.assetRange = assetRange;
-        this.educationHeat = educationHeat;
-        this.dualIncome = dualIncome;
+    public void updateWizardProfile(Integer monthlyHouseholdIncome, Integer parentEconomicActivity, Integer educationLevel) {
+        this.monthlyHouseholdIncome = monthlyHouseholdIncome;
+        this.parentEconomicActivity = parentEconomicActivity;
+        this.educationLevel = educationLevel;
     }
 
     public void updateCertFileUrl(String certFileUrl) {

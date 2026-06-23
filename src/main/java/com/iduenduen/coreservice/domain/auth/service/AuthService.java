@@ -25,10 +25,10 @@ import com.iduenduen.coreservice.domain.onboarding.enums.AgreementType;
 import com.iduenduen.coreservice.domain.onboarding.repository.UserAgreementRepository;
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
+import com.iduenduen.coreservice.domain.parent.service.ParentService;
 
 import com.iduenduen.coreservice.domain.account.entity.Account;
 import com.iduenduen.coreservice.domain.account.enums.AccountType;
-import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +49,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final StringRedisTemplate redisTemplate;
+    private final ParentService parentService;
 
     @Transactional
     public SignupResponse signup(SignupRequest request, HttpServletResponse response) {
@@ -221,9 +222,7 @@ public class AuthService {
 
     @Transactional
     public void withdraw(Long parentId, String accessToken, String refreshToken, HttpServletResponse response) {
-        Parent parent = parentRepository.findByIdAndDeletedAtIsNull(parentId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.PARENT_NOT_FOUND));
-        parent.withdraw();
+        parentService.withdraw(parentId);
         logout(accessToken, refreshToken, response);
     }
 
