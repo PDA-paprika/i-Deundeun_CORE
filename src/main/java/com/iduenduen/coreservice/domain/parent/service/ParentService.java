@@ -198,7 +198,7 @@ public class ParentService {
                 request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
 
         return restClient.post()
-                .uri(assistantServiceUrl + "/state/kor")
+                .uri(assistantServiceUrl + "/stats/kor")
                 .body(request)
                 .retrieve()
                 .body(StatsResponse.class);
@@ -209,7 +209,7 @@ public class ParentService {
                 request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
 
         return restClient.post()
-                .uri(assistantServiceUrl + "/state/personal")
+                .uri(assistantServiceUrl + "/stats/personal")
                 .body(request)
                 .retrieve()
                 .body(StatsResponse.class);
