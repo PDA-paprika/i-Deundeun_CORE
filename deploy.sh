@@ -41,17 +41,17 @@ docker rm -f $NEXT_NAME || true
 
 DOCKER_USERNAME=$DOCKER_USERNAME IMAGE_TAG=$IMAGE_TAG docker-compose -f $COMPOSE_FILE up -d
 
-echo "Health check 시작"
+echo "Health check 시작 (최대 10회 / 3초 간격)"
 
-for i in {1..40}; do
-  if curl -f http://localhost:$NEXT_PORT/actuator/health; then
-    echo "Health check 성공"
+for i in {1..10}; do
+  echo "Health check 시도 중... ($i/10)"
+  if curl -sf http://localhost:$NEXT_PORT/actuator/health > /dev/null; then
+    echo "Health check 성공 ($i번째 시도)"
     break
   fi
 
-  if [ $i -eq 40 ]; then
-    echo "Health check 실패"
-    docker logs $NEXT_NAME
+  if [ $i -eq 10 ]; then
+    echo "Health check 실패 - EC2에서 'docker logs $NEXT_NAME' 으로 확인하세요"
     exit 1
   fi
 
