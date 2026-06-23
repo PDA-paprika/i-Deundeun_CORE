@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class StatsKorRequest {
+public class StatsRequest {
 
     @JsonProperty("goal_type1")
     private Integer goalType1;

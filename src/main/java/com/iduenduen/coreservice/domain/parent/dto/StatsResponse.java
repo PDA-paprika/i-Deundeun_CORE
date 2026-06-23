@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class StatsKorResponse {
+public class StatsResponse {
 
     @JsonProperty("mode")
     private Double mode;

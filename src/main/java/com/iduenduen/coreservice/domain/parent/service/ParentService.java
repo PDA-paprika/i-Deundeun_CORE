@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.iduenduen.coreservice.domain.parent.dto.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestClient;
 
-import com.iduenduen.coreservice.domain.account.entity.AccountEtfHolding;
 import com.iduenduen.coreservice.domain.account.repository.AccountCashHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHoldingRepository;
@@ -26,16 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.goals.repository.GoalFrequencyProjection;
-import com.iduenduen.coreservice.domain.parent.dto.ParentFrequencyRequest;
-import com.iduenduen.coreservice.domain.parent.dto.ParentFrequencyResponse;
-import com.iduenduen.coreservice.domain.parent.dto.StatsKorRequest;
-import com.iduenduen.coreservice.domain.parent.dto.StatsKorResponse;
-import com.iduenduen.coreservice.domain.parent.dto.ParentResponse;
-import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateRequest;
-import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateResponse;
-import com.iduenduen.coreservice.domain.parent.dto.SelectedChildRequest;
-import com.iduenduen.coreservice.domain.parent.dto.SelectedChildResponse;
-import com.iduenduen.coreservice.domain.parent.dto.WizardProfileRequest;
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
 import com.iduenduen.coreservice.domain.account.entity.Account;
@@ -203,7 +193,7 @@ public class ParentService {
         return returnedCluster;
     }
 
-    public StatsKorResponse getStatsKor(StatsKorRequest request) {
+    public StatsResponse getStatsKor(StatsRequest request) {
         log.info("[Parent] 국가통계 조회 - goalType1={}, goalType2={}, goalType3={}",
                 request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
 
@@ -211,7 +201,18 @@ public class ParentService {
                 .uri(assistantServiceUrl + "/state/kor")
                 .body(request)
                 .retrieve()
-                .body(StatsKorResponse.class);
+                .body(StatsResponse.class);
+    }
+
+    public StatsResponse getStatsPersonal(StatsRequest request) {
+        log.info("[Parent] 개인통계 조회 - goalType1={}, goalType2={}, goalType3={}",
+                request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
+
+        return restClient.post()
+                .uri(assistantServiceUrl + "/state/personal")
+                .body(request)
+                .retrieve()
+                .body(StatsResponse.class);
     }
 
     public List<ParentFrequencyResponse> getFrequency(ParentFrequencyRequest request) {

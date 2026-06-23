@@ -2,6 +2,7 @@ package com.iduenduen.coreservice.domain.parent.controller;
 
 import java.util.Map;
 
+import com.iduenduen.coreservice.domain.parent.dto.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,14 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
-import com.iduenduen.coreservice.domain.parent.dto.ParentResponse;
-import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateRequest;
-import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateResponse;
-import com.iduenduen.coreservice.domain.parent.dto.SelectedChildRequest;
-import com.iduenduen.coreservice.domain.parent.dto.SelectedChildResponse;
-import com.iduenduen.coreservice.domain.parent.dto.StatsKorRequest;
-import com.iduenduen.coreservice.domain.parent.dto.StatsKorResponse;
-import com.iduenduen.coreservice.domain.parent.dto.WizardProfileRequest;
 import com.iduenduen.coreservice.domain.parent.service.ParentService;
 
 import lombok.RequiredArgsConstructor;
@@ -82,9 +75,15 @@ public class ParentController {
     }
 
     @PostMapping("/stats/kor")
-    public ResponseEntity<ApiResponse<StatsKorResponse>> getStatsKor(
-            @RequestBody StatsKorRequest request) {
+    public ResponseEntity<ApiResponse<StatsResponse>> getStatsKor(
+            @RequestBody StatsRequest request) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.getStatsKor(request));
+    }
+
+    @PostMapping("/stats/personal")
+    public ResponseEntity<ApiResponse<StatsResponse>> getStatsPersonal(
+            @RequestBody StatsRequest request) {
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.getStatsPersonal(request));
     }
 
     @GetMapping("/holdings")
