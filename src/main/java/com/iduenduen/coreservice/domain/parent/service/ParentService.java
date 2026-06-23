@@ -98,6 +98,12 @@ public class ParentService {
     }
 
     @Transactional
+    public void updateCertFileUrl(Long parentId, String certFileUrl) {
+        Parent parent = findActiveParent(parentId);
+        parent.updateCertFileUrl(certFileUrl);
+    }
+
+    @Transactional
     public void withdraw(Long parentId) {
         Parent parent = findActiveParent(parentId);
         parent.withdraw();
