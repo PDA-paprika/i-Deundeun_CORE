@@ -38,7 +38,8 @@ public class SecurityConfig {
 					"/upload/**",
 					"/onboarding/**",
 					"/swagger-ui/**",
-					"/v3/api-docs/**"
+					"/v3/api-docs/**",
+						"/account/trade"
 				).permitAll()
 				.anyRequest().authenticated()
 			)
