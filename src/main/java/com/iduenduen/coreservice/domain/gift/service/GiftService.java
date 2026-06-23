@@ -349,7 +349,7 @@ public class GiftService {
 				if (request.cashAmount() == null || request.startDate() == null) {
 					throw new GeneralException(ErrorStatus.GIFT_CONTRACT_INVALID_FIELDS);
 				}
-				if (!request.startDate().isEqual(LocalDate.now())) {
+				if (request.startDate().isBefore(LocalDate.now())) {
 					throw new GeneralException(ErrorStatus.GIFT_CONTRACT_ONLY_TODAY);
 				}
 			}
@@ -357,7 +357,7 @@ public class GiftService {
 				if (request.externalEtfId() == null || request.qty() == null || request.startDate() == null) {
 					throw new GeneralException(ErrorStatus.GIFT_CONTRACT_INVALID_FIELDS);
 				}
-				if (!request.startDate().isEqual(LocalDate.now())) {
+				if (request.startDate().isBefore(LocalDate.now())) {
 					throw new GeneralException(ErrorStatus.GIFT_CONTRACT_ONLY_TODAY);
 				}
 			}
