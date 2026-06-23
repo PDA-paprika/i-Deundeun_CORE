@@ -78,7 +78,7 @@ echo "      Nginx reload 완료 - 트래픽이 $NEXT_NAME 으로 전환됐습니
 
 echo "[6/6] 기존 컨테이너 제거: $CURRENT_NAME"
 docker rm -f $CURRENT_NAME || true
-docker system prune -af
+docker image prune -f
 
 echo "======================================"
 echo " Core Server Blue/Green 배포 완료"
