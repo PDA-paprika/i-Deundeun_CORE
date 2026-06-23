@@ -1,6 +1,7 @@
 package com.iduenduen.coreservice.domain.parent.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHolding;
 import com.iduenduen.coreservice.domain.account.repository.AccountCashHistoryRepository;
@@ -20,6 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
+import com.iduenduen.coreservice.domain.goals.repository.GoalFrequencyProjection;
+import com.iduenduen.coreservice.domain.parent.dto.ParentFrequencyRequest;
+import com.iduenduen.coreservice.domain.parent.dto.ParentFrequencyResponse;
 import com.iduenduen.coreservice.domain.parent.dto.ParentResponse;
 import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateRequest;
 import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateResponse;
@@ -164,6 +168,23 @@ public class ParentService {
         // 7. parent → soft delete
         Parent parent = findActiveParent(parentId);
         parent.withdraw();
+    }
+
+    public List<ParentFrequencyResponse> getFrequency(ParentFrequencyRequest request) {
+        try {
+            List<GoalFrequencyProjection> projections =
+                    goalRepository.countByClusterValue(request.getClusterValue());
+
+            return projections.stream()
+                    .map(p -> ParentFrequencyResponse.builder()
+                            .goalType1(p.getGoalType1())
+                            .goalType2(p.getGoalType2())
+                            .count(p.getCount())
+                            .build())
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new GeneralException(ErrorStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     private Parent findActiveParent(Long parentId) {
