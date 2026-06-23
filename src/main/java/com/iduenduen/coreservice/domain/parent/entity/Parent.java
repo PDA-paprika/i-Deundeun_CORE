@@ -120,6 +120,10 @@ public class Parent extends BaseEntity {
         this.educationLevel = educationLevel;
     }
 
+    public void updateClusterValue(Integer clusterValue) {
+        this.clusterValue = clusterValue;
+    }
+
     public void updateCertFileUrl(String certFileUrl) {
         this.certFileUrl = certFileUrl;
     }

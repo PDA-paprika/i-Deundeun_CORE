@@ -1,6 +1,11 @@
 package com.iduenduen.coreservice.domain.parent.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.RestClient;
 
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHolding;
 import com.iduenduen.coreservice.domain.account.repository.AccountCashHistoryRepository;
@@ -20,6 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
+import com.iduenduen.coreservice.domain.goals.repository.GoalFrequencyProjection;
+import com.iduenduen.coreservice.domain.parent.dto.ParentFrequencyRequest;
+import com.iduenduen.coreservice.domain.parent.dto.ParentFrequencyResponse;
 import com.iduenduen.coreservice.domain.parent.dto.ParentResponse;
 import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateRequest;
 import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateResponse;
@@ -31,11 +39,18 @@ import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
 import com.iduenduen.coreservice.domain.account.entity.Account;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ParentService {
+
+    @Value("${ASSISTANT_URL:http://localhost:8085}")
+    private String assistantServiceUrl;
+
+    private final RestClient restClient = RestClient.create();
 
     private final ParentRepository parentRepository;
     private final AccountRepository accountRepository;
@@ -164,6 +179,43 @@ public class ParentService {
         // 7. parent → soft delete
         Parent parent = findActiveParent(parentId);
         parent.withdraw();
+    }
+
+    @Transactional
+    public Integer recluster(Long parentId) {
+        log.info("[Parent] 클러스터 재분류 시작 - parentId={}", parentId);
+
+        Parent parent = findActiveParent(parentId);
+
+        Integer returnedCluster = restClient.post()
+                .uri(assistantServiceUrl + "/parents/recluster")
+                .body(Map.of("parent_id", parentId))
+                .retrieve()
+                .body(Integer.class);
+
+        log.info("[Parent] 서비스 응답 수신 - parentId={}, clusterValue={}", parentId, returnedCluster);
+
+        parent.updateClusterValue(returnedCluster);
+        log.info("[Parent] cluster_value 업데이트 완료 - parentId={}, clusterValue={}", parentId, returnedCluster);
+
+        return returnedCluster;
+    }
+
+    public List<ParentFrequencyResponse> getFrequency(ParentFrequencyRequest request) {
+        try {
+            List<GoalFrequencyProjection> projections =
+                    goalRepository.countByClusterValue(request.getClusterValue());
+
+            return projections.stream()
+                    .map(p -> ParentFrequencyResponse.builder()
+                            .goalType1(p.getGoalType1())
+                            .goalType2(p.getGoalType2())
+                            .count(p.getCount())
+                            .build())
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new GeneralException(ErrorStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     private Parent findActiveParent(Long parentId) {

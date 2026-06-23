@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.iduenduen.coreservice.domain.goals.entity.Goal;
 import com.iduenduen.coreservice.domain.goals.enums.GoalStatus;
@@ -23,4 +25,16 @@ public interface GoalRepository extends JpaRepository<Goal, Long> {
     List<Goal> findAllByStatusAndTargetDateBefore(GoalStatus status, LocalDate date);
 
     List<Goal> findAllByParentId(Long parentId);
+
+    @Query(value =
+        "SELECT g.goal_type1 AS goalType1, g.goal_type2 AS goalType2, COUNT(*) AS count " +
+        "FROM goals g " +
+        "JOIN parents p ON g.parent_id = p.id " +
+        "WHERE p.cluster_value = :clusterValue " +
+        "  AND p.deleted_at IS NULL " +
+        "  AND g.deleted_at IS NULL " +
+        "GROUP BY g.goal_type1, g.goal_type2 " +
+        "ORDER BY count DESC",
+        nativeQuery = true)
+    List<GoalFrequencyProjection> countByClusterValue(@Param("clusterValue") Integer clusterValue);
 }

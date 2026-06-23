@@ -48,7 +48,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
         log.error("[*] Internal Server Error :", e);
-        return ApiResponse.error(ErrorStatus.INTERNAL_SERVER_ERROR);
+        return ApiResponse.error(ErrorStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
     @Override
