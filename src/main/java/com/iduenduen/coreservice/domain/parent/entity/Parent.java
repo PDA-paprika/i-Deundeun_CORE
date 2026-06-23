@@ -126,10 +126,6 @@ public class Parent extends BaseEntity {
         this.dualIncome = dualIncome;
     }
 
-    public void updateCertFileUrl(String certFileUrl) {
-        this.certFileUrl = certFileUrl;
-    }
-
     public void updatePassword(String newPasswordHash) {
         this.passwordHash = newPasswordHash;
     }

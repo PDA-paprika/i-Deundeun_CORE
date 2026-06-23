@@ -1,7 +1,5 @@
 package com.iduenduen.coreservice.domain.parent.controller;
 
-import java.util.Map;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -49,14 +47,6 @@ public class ParentController {
             @AuthenticationPrincipal Long parentId,
             @RequestBody SelectedChildRequest request) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.updateSelectedChild(parentId, request));
-    }
-
-    @PatchMapping("/cert-file")
-    public ResponseEntity<ApiResponse<Void>> updateCertFile(
-            @AuthenticationPrincipal Long parentId,
-            @RequestBody Map<String, String> body) {
-        parentService.updateCertFileUrl(parentId, body.get("cert_file_url"));
-        return ApiResponse.success(SuccessStatus.SUCCESS_200);
     }
 
     @PatchMapping("/wizard-profile")
