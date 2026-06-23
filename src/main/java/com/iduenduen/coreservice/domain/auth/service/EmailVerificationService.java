@@ -13,6 +13,7 @@ import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.auth.entity.EmailVerification;
 import com.iduenduen.coreservice.domain.auth.repository.EmailVerificationRepository;
 import com.iduenduen.coreservice.domain.auth.util.EmailSender;
+import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +23,7 @@ public class EmailVerificationService {
 
     private final EmailVerificationRepository emailVerificationRepository;
     private final EmailSender emailSender;
+    private final ParentRepository parentRepository;
     private static final SecureRandom random = new SecureRandom();
 
     @Value("${mail.verification.expiration}")
@@ -30,6 +32,9 @@ public class EmailVerificationService {
     // 이메일 인증 코드 요청
     @Transactional
     public void requestEmailVerificationCode(String email) {
+        if (parentRepository.existsByEmail(email)) {
+            throw new GeneralException(ErrorStatus.DUPLICATE_EMAIL);
+        }
         String verificationCode = createEmailVerificationCode();
         emailVerificationRepository.findByEmail(email)
                 .ifPresentOrElse(
