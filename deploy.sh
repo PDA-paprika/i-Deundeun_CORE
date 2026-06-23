@@ -21,7 +21,12 @@ echo " Core Server Blue/Green 배포 시작"
 echo "======================================"
 echo "[1/6] 이미지 Pull: $IMAGE_NAME"
 
-docker pull $IMAGE_NAME
+for i in {1..3}; do
+  docker pull $IMAGE_NAME && break
+  echo "      Pull 실패 ($i/3), 10초 후 재시도..."
+  [ $i -eq 3 ] && exit 1
+  sleep 10
+done
 
 if grep -q "127.0.0.1:${BLUE_PORT}" $NGINX_CONF; then
   CURRENT_NAME=$BLUE_NAME
