@@ -1,6 +1,7 @@
 package com.iduenduen.coreservice.domain.gift.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -176,8 +177,8 @@ public class GiftService {
 	// 미성년(19세 미만): 2000만원, 성인: 5000만원 (10년 누계)
 	private long calculateRemainingTaxFreeLimit(Long childId, int age) {
 		long limit = age < 19 ? 20_000_000L : 50_000_000L;
-		LocalDate tenYearsAgo = LocalDate.now().minusYears(10);
-		long used = giftTransferRepository.sumTransferredCashAmtByChildIdAndStatusAndScheduledDateAfter(
+		LocalDateTime tenYearsAgo = LocalDate.now().minusYears(10).atStartOfDay();
+		long used = giftTransferRepository.sumTransferredCashAmtByChildIdAndStatusAndCompletedAtAfter(
 			childId, com.iduenduen.coreservice.domain.gift.enums.TransferStatus.COMPLETED, tenYearsAgo);
 		return Math.max(0L, limit - used);
 	}

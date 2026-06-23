@@ -1,6 +1,7 @@
 package com.iduenduen.coreservice.domain.gift.repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,9 +26,9 @@ public interface GiftTransferRepository extends JpaRepository<GiftTransfer, Long
 
 	@Query("SELECT COALESCE(SUM(t.transferredCashAmt), 0) FROM GiftTransfer t " +
 		"JOIN GiftContract c ON t.giftContractId = c.id " +
-		"WHERE c.childId = :childId AND t.status = :status AND t.scheduledDate >= :since")
-	Long sumTransferredCashAmtByChildIdAndStatusAndScheduledDateAfter(
+		"WHERE c.childId = :childId AND t.status = :status AND t.completedAt >= :since")
+	Long sumTransferredCashAmtByChildIdAndStatusAndCompletedAtAfter(
 		@Param("childId") Long childId,
 		@Param("status") TransferStatus status,
-		@Param("since") LocalDate since);
+		@Param("since") LocalDateTime since);
 }
