@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.Async;
 
 import com.iduenduen.coreservice.domain.parent.dto.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -327,7 +326,6 @@ public class ParentService {
         return response;
     }
 
-    @Async
     @Transactional
     public void train() {
         log.info("[Parent] 클러스터 학습 시작");
