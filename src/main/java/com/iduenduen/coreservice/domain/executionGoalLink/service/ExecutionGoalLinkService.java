@@ -54,6 +54,7 @@ public class ExecutionGoalLinkService {
             .toList();
     }
 
+    @Transactional
     public void link(Long parentId, Long linkId, LinkRequest req) {
         ExecutionGoalLink link = executionGoalLinkRepository.findById(linkId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.EXECUTION_LINK_NOT_FOUND));
