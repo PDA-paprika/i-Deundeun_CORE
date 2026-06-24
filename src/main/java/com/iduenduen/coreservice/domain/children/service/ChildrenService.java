@@ -2,6 +2,8 @@ package com.iduenduen.coreservice.domain.children.service;
 
 import java.util.List;
 
+import com.iduenduen.coreservice.domain.account.entity.Account;
+import com.iduenduen.coreservice.domain.account.enums.AccountType;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHoldingRepository;
 import com.iduenduen.coreservice.domain.children.dto.*;
 import org.springframework.stereotype.Service;
@@ -120,6 +122,15 @@ public class ChildrenService {
 			.build();
 
 		Children registered = childrenRepository.save(children);
+
+		Account childAccount = Account.builder()
+			.childId(registered.getId())
+			.accountType(AccountType.CHILD)
+			.accountNumber(request.securitiesAccount())
+			.availableAmt(0L)
+			.build();
+		accountRepository.save(childAccount);
+
 		return ChildrenCreateResponse.from(registered);
 	}
 
