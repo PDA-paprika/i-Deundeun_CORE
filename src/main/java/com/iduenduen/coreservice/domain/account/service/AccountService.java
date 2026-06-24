@@ -125,6 +125,26 @@ public class AccountService {
                 .build();
     }
 
+    public AccountHoldingsResponse getUnallocatedHoldings(Long parentId) {
+        Account account = accountRepository.findByParentId(parentId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.ACCOUNT_NOT_FOUND));
+
+        List<AccountEtfHolding> holdings = accountEtfHoldingRepository.findByIdAccountId(account.getAccountId());
+
+        List<AccountHoldingsResponse.HoldingDto> holdingDtos = holdings.stream()
+                .map(h -> AccountHoldingsResponse.HoldingDto.builder()
+                        .etfId(h.getId().getEtfId())
+                        .qty(h.getQty())
+                        .avgBuyPrice(h.getAvgBuyPrice())
+                        .build())
+                .toList();
+
+        return AccountHoldingsResponse.builder()
+                .availableAmt(account.getAvailableAmt())
+                .holdings(holdingDtos)
+                .build();
+    }
+
     public AccountCashHistoriesResponse getCashHistories(Long accountId) {
         List<AccountCashHistory> histories = accountCashHistoryRepository
                 .findByAccountIdOrderByOccurredAtDesc(accountId);
