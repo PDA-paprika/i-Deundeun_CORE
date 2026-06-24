@@ -258,13 +258,38 @@ public class ParentService {
         return List.of();
     }
 
-    public StatsResponse getStatsPersonal(StatsPersonalRequest request) {
-        log.info("[Parent] 개인통계 조회 - goalType1={}, goalType2={}, goalType3={}",
-                request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
+    public StatsResponse getStatsPersonal(Long parentId, StatsPersonalRequest request) {
+        log.info("[Parent] 개인통계 조회 - parentId={}, goalType1={}, goalType2={}, goalType3={}",
+                parentId, request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
+
+        Parent parent = findActiveParent(parentId);
+
+        List<Integer> distribution = jdbcTemplate.queryForList("""
+                SELECT go.target_amount
+                FROM goals go
+                JOIN parents p ON go.parent_id = p.id
+                WHERE p.cluster_value = ?
+                  AND go.goal_type1   = ?
+                  AND go.goal_type2   = ?
+                  AND go.goal_type3   <=> ?
+                  AND go.parent_id   != ?
+                  AND go.deleted_at   IS NULL
+                """,
+                Integer.class,
+                parent.getClusterValue(), request.getGoalType1(), request.getGoalType2(),
+                request.getGoalType3(), parentId);
+
+        StatsPersonalRequest requestWithDist = StatsPersonalRequest.builder()
+                .goalType1(request.getGoalType1())
+                .goalType2(request.getGoalType2())
+                .goalType3(request.getGoalType3())
+                .clusterValue(parent.getClusterValue())
+                .distribution(distribution)
+                .build();
 
         return restClient.post()
                 .uri(assistantServiceUrl + "/stats/personal")
-                .body(request)
+                .body(requestWithDist)
                 .retrieve()
                 .body(StatsResponse.class);
     }

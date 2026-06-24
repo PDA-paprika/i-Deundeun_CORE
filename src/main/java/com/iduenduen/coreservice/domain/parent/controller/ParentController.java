@@ -83,8 +83,9 @@ public class ParentController {
 
     @PostMapping("/stats/personal")
     public ResponseEntity<ApiResponse<StatsResponse>> getStatsPersonal(
+            @AuthenticationPrincipal Long parentId,
             @RequestBody StatsPersonalRequest request) {
-        return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.getStatsPersonal(request));
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.getStatsPersonal(parentId, request));
     }
 
     @GetMapping("/holdings")
