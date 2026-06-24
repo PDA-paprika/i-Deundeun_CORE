@@ -1,7 +1,6 @@
 package com.iduenduen.coreservice.domain.parent.service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -182,11 +181,28 @@ public class ParentService {
 
         Parent parent = findActiveParent(parentId);
 
-        Integer returnedCluster = restClient.post()
+        Integer urbanFlag = jdbcTemplate.queryForList(
+                "SELECT urban_flag FROM region_mapping WHERE region = ?",
+                Integer.class, parent.getRegion())
+                .stream().findFirst().orElse(0);
+
+        ReclusterRequest reclusterRequest = ReclusterRequest.builder()
+                .relation(parent.getRelation())
+                .urbanFlag(urbanFlag)
+                .monthlyHouseholdIncome(parent.getMonthlyHouseholdIncome())
+                .educationLevel(parent.getEducationLevel())
+                .parentEconomicActivity(parent.getParentEconomicActivity())
+                .childCount(parent.getChildCount())
+                .build();
+
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Integer> response = restClient.post()
                 .uri(assistantServiceUrl + "/parents/recluster")
-                .body(Map.of("parent_id", parentId))
+                .body(reclusterRequest)
                 .retrieve()
-                .body(Integer.class);
+                .body(java.util.Map.class);
+
+        Integer returnedCluster = response != null ? response.get("cluster_value") : null;
 
         log.info("[Parent] 서비스 응답 수신 - parentId={}, clusterValue={}", parentId, returnedCluster);
 
