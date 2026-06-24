@@ -27,10 +27,6 @@ public record EtfTradeNotificationRequest(
     Long etfId,
 
     @NotNull
-    @JsonProperty("external_etf_id")
-    String externalEtfId,
-
-    @NotNull
     @Positive
     Integer qty,
 
@@ -43,12 +39,6 @@ public record EtfTradeNotificationRequest(
 
     @JsonProperty("reference_type")
     ReferenceType referenceType,
-
-    @JsonProperty("child_id")
-    Long childId,
-
-    @JsonProperty("goal_id")
-    Long goalId,
 
     String memo,
 
