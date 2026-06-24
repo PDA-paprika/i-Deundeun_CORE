@@ -321,7 +321,16 @@ public class GiftService {
 				transfers.get(0).complete(0, contract.getQty());
 				contract.complete();
 			}
-			case INSTALLMENT -> contract.activate();
+			case INSTALLMENT -> {
+				contract.activate();
+				GiftTransfer firstTransfer = transfers.get(0);
+				if (!firstTransfer.getScheduledDate().isAfter(LocalDate.now())) {
+					if (fromAccount.getAvailableAmt() >= contract.getCashAmount()) {
+						fromAccount.deductCash(contract.getCashAmount());
+						firstTransfer.complete(contract.getCashAmount(), 0);
+					}
+				}
+			}
 		}
 	}
 
