@@ -76,13 +76,14 @@ public class ParentController {
 
     @PostMapping("/stats/kor")
     public ResponseEntity<ApiResponse<StatsResponse>> getStatsKor(
-            @RequestBody StatsRequest request) {
-        return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.getStatsKor(request));
+            @AuthenticationPrincipal Long parentId,
+            @RequestBody StatsKorRequest request) {
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.getStatsKor(parentId, request));
     }
 
     @PostMapping("/stats/personal")
     public ResponseEntity<ApiResponse<StatsResponse>> getStatsPersonal(
-            @RequestBody StatsRequest request) {
+            @RequestBody StatsPersonalRequest request) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.getStatsPersonal(request));
     }
 

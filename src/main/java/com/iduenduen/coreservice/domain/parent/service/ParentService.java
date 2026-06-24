@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+
 import com.iduenduen.coreservice.domain.parent.dto.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestClient;
@@ -45,6 +47,7 @@ public class ParentService {
     private final RestClient restClient = RestClient.create();
 
     private final ParentRepository parentRepository;
+    private final JdbcTemplate jdbcTemplate;
     private final AccountRepository accountRepository;
     private final AccountEtfHoldingRepository accountEtfHoldingRepository;
     private final AccountCashHistoryRepository accountCashHistoryRepository;
@@ -193,18 +196,69 @@ public class ParentService {
         return returnedCluster;
     }
 
-    public StatsResponse getStatsKor(StatsRequest request) {
-        log.info("[Parent] 국가통계 조회 - goalType1={}, goalType2={}, goalType3={}",
-                request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
+    public StatsResponse getStatsKor(Long parentId, StatsKorRequest request) {
+        log.info("[Parent] 국가통계 조회 - parentId={}, goalType1={}, goalType2={}, goalType3={}",
+                parentId, request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
+
+        Parent parent = findActiveParent(parentId);
+        Integer residenceRegion = jdbcTemplate.queryForObject(
+                "SELECT residence_region FROM region_mapping WHERE region = ?",
+                Integer.class, parent.getRegion());
+
+        List<Integer> distribution = fetchDistribution(
+                request.getGoalType1(), request.getGoalType2(), request.getGoalType3(),
+                residenceRegion, parent.getParentEconomicActivity(), parent.getMonthlyHouseholdIncome());
+
+        StatsKorRequest requestWithDist = StatsKorRequest.builder()
+                .goalType1(request.getGoalType1())
+                .goalType2(request.getGoalType2())
+                .goalType3(request.getGoalType3())
+                .distribution(distribution)
+                .build();
 
         return restClient.post()
                 .uri(assistantServiceUrl + "/stats/kor")
-                .body(request)
+                .body(requestWithDist)
                 .retrieve()
                 .body(StatsResponse.class);
     }
 
-    public StatsResponse getStatsPersonal(StatsRequest request) {
+    private List<Integer> fetchDistribution(Integer g1, Integer g2, Integer g3,
+                                             Integer residenceRegion, Integer economicActivity, Integer income) {
+        if (g1 == 1 && (g2 == 2 || g2 == 3)) {
+            return jdbcTemplate.queryForList("""
+                    SELECT total_amount FROM elementary_middle_education_stat
+                    WHERE school_level = ?
+                      AND residence_region = ?
+                      AND parent_economic_activity = ?
+                      AND monthly_household_income = ?
+                      AND desired_high_school_type = ?
+                    """,
+                    Integer.class, g2, residenceRegion, economicActivity, income, g3);
+        } else if (g1 == 1 && g2 == 4) {
+            return jdbcTemplate.queryForList("""
+                    SELECT total_amount FROM high_school_education_stat
+                    WHERE school_level = ?
+                      AND residence_region = ?
+                      AND parent_economic_activity = ?
+                      AND monthly_household_income = ?
+                      AND desired_university_major = ?
+                    """,
+                    Integer.class, g2, residenceRegion, economicActivity, income, g3);
+        } else if (g1 == 2) {
+            int cappedIncome = income < 6 ? income : 6;
+            return jdbcTemplate.queryForList("""
+                    SELECT total_amount FROM living_stat
+                    WHERE school_name = ?
+                      AND parent_economic_activity = ?
+                      AND monthly_household_income = ?
+                    """,
+                    Integer.class, String.valueOf(g2), String.valueOf(economicActivity), String.valueOf(cappedIncome));
+        }
+        return List.of();
+    }
+
+    public StatsResponse getStatsPersonal(StatsPersonalRequest request) {
         log.info("[Parent] 개인통계 조회 - goalType1={}, goalType2={}, goalType3={}",
                 request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
 

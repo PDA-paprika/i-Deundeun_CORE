@@ -24,7 +24,4 @@ public class StatsResponse {
 
     @JsonProperty("comment")
     private String comment;
-
-    @JsonProperty("distribution")
-    private List<Double> barData;
 }
