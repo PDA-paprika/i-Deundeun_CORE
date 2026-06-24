@@ -48,6 +48,13 @@ public class AccountController {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, accountService.getHoldings(accountId));
     }
 
+    @GetMapping("/holdings/unallocated")
+    @Operation(summary = "미지정 보유 ETF 조회", description = "자녀·목표에 미지정된 부모 보유 ETF 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<AccountHoldingsResponse>> getUnallocatedHoldings(
+            @AuthenticationPrincipal Long parentId) {
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, accountService.getUnallocatedHoldings(parentId));
+    }
+
     @GetMapping("/cash-histories")
     @Operation(summary = "현금 거래 내역 조회", description = "현금 거래 내역을 조회합니다.")
     public ResponseEntity<ApiResponse<AccountCashHistoriesResponse>> getCashHistories(
