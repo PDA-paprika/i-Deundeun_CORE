@@ -26,6 +26,9 @@ public record EtfTradeNotificationRequest(
     @JsonProperty("etf_id")
     Long etfId,
 
+    @JsonProperty("etf_name")
+    String etfName,
+
     @NotNull
     @Positive
     Integer qty,

@@ -91,6 +91,7 @@ public class AccountService {
                 .accountId(req.accountId())
                 .eventType(req.eventType())
                 .etfId(req.etfId())
+                .etfNameSnapshot(req.etfName())
                 .qtyDelta(qtyDelta)
                 .price(req.price())
                 .referenceId(req.referenceId())
