@@ -29,17 +29,14 @@ public class ParentResponse {
     @JsonProperty("profile_image_url")
     private String profileImageUrl;
 
-    @JsonProperty("income_level")
-    private String incomeLevel;
+    @JsonProperty("monthly_household_income")
+    private Integer monthlyHouseholdIncome;
 
-    @JsonProperty("asset_range")
-    private String assetRange;
+    @JsonProperty("parent_economic_activity")
+    private Integer parentEconomicActivity;
 
-    @JsonProperty("education_heat")
-    private Integer educationHeat;
-
-    @JsonProperty("dual_income")
-    private Boolean dualIncome;
+    @JsonProperty("education_level")
+    private Integer educationLevel;
 
     @JsonProperty("cluster_value")
     private Integer clusterValue;

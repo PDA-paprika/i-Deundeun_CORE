@@ -28,8 +28,8 @@ public class AccountEtfHistory {
     @Column(name = "event_type", length = 20, nullable = false)
     private EtfEventType eventType;
 
-    @Column(name = "external_etf_id", nullable = false)
-    private String externalEtfId;
+    @Column(name = "etf_id", nullable = false)
+    private Long etfId;
 
     @Column(name = "qty_delta", nullable = false)
     private int qtyDelta;
@@ -58,12 +58,12 @@ public class AccountEtfHistory {
     private LocalDateTime createdAt;
 
     @Builder
-    public AccountEtfHistory(Long accountId, EtfEventType eventType, String externalEtfId,
+    public AccountEtfHistory(Long accountId, EtfEventType eventType, Long etfId,
                               int qtyDelta, long price, String referenceId,
                               ReferenceType referenceType, String etfNameSnapshot, String memo, LocalDateTime occurredAt) {
         this.accountId = accountId;
         this.eventType = eventType;
-        this.externalEtfId = externalEtfId;
+        this.etfId = etfId;
         this.qtyDelta = qtyDelta;
         this.price = price;
         this.referenceId = referenceId;

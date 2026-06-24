@@ -2,8 +2,6 @@ package com.iduenduen.coreservice.domain.executionGoalLink.controller;
 
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
-import com.iduenduen.coreservice.domain.account.dto.EtfTradeNotificationRequest;
-import com.iduenduen.coreservice.domain.account.service.AccountService;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.UnlinkedExecutionResponse;
@@ -11,6 +9,7 @@ import com.iduenduen.coreservice.domain.executionGoalLink.service.ExecutionGoalL
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +23,7 @@ public class ExecutionGoalLinkController {
 
     @GetMapping("/unlinked")
     public ResponseEntity<ApiResponse<List<UnlinkedExecutionResponse>>> getUnlinked(
-        @RequestParam("parent_id") Long parentId
+            @AuthenticationPrincipal Long parentId
     ) {
         return ApiResponse.success(SuccessStatus.EXECUTION_LINK_SUCCESS,
             executionGoalLinkService.getUnlinked(parentId));
@@ -32,10 +31,11 @@ public class ExecutionGoalLinkController {
 
     @PutMapping("/{linkId}/link")
     public ResponseEntity<ApiResponse<Void>> link(
-        @PathVariable Long linkId,
-        @RequestBody @Valid LinkRequest req
+            @AuthenticationPrincipal Long parentId,
+            @PathVariable Long linkId,
+            @RequestBody @Valid LinkRequest req
     ) {
-        executionGoalLinkService.link(linkId, req);
+        executionGoalLinkService.link(parentId, linkId, req);
         return ApiResponse.success(SuccessStatus.EXECUTION_LINK_SUCCESS);
     }
 

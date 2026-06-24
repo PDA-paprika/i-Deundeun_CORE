@@ -23,9 +23,8 @@ public record EtfTradeNotificationRequest(
     @JsonProperty("event_type")
     EtfEventType eventType,
 
-    @NotNull
-    @JsonProperty("external_etf_id")
-    String externalEtfId,
+    @JsonProperty("etf_id")
+    Long etfId,
 
     @NotNull
     @Positive
@@ -40,12 +39,6 @@ public record EtfTradeNotificationRequest(
 
     @JsonProperty("reference_type")
     ReferenceType referenceType,
-
-    @JsonProperty("child_id")
-    Long childId,
-
-    @JsonProperty("goal_id")
-    Long goalId,
 
     String memo,
 

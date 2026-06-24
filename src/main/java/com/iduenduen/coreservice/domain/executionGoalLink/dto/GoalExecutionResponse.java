@@ -15,8 +15,8 @@ public record GoalExecutionResponse(
     @JsonProperty("event_type")
     EtfEventType eventType,
 
-    @JsonProperty("external_etf_id")
-    String externalEtfId,
+    @JsonProperty("etf_id")
+    Long etfId,
 
     @JsonProperty("qty_delta")
     int qtyDelta,
@@ -40,7 +40,7 @@ public record GoalExecutionResponse(
         return new GoalExecutionResponse(
             link.getId(),
             history.getEventType(),
-            history.getExternalEtfId(),
+            history.getEtfId(),
             history.getQtyDelta(),
             history.getPrice(),
             link.getChildId(),

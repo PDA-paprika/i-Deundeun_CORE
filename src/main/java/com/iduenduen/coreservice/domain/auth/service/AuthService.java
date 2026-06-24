@@ -25,10 +25,10 @@ import com.iduenduen.coreservice.domain.onboarding.enums.AgreementType;
 import com.iduenduen.coreservice.domain.onboarding.repository.UserAgreementRepository;
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
+import com.iduenduen.coreservice.domain.parent.service.ParentService;
 
 import com.iduenduen.coreservice.domain.account.entity.Account;
 import com.iduenduen.coreservice.domain.account.enums.AccountType;
-import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -49,13 +49,13 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final StringRedisTemplate redisTemplate;
+    private final ParentService parentService;
 
     @Transactional
     public SignupResponse signup(SignupRequest request, HttpServletResponse response) {
         if (request.getEmail() == null || request.getPassword() == null || request.getAccountNumber() == null
                 || request.getName() == null || request.getBirthDate() == null || request.getRelation() == null
-                || request.getRegion() == null || request.getChildCount() == null
-                || request.getCertFileUrl() == null || request.getCertFileUrl().isBlank()) {
+                || request.getRegion() == null || request.getChildCount() == null) {
             throw new GeneralException(ErrorStatus.BAD_REQUEST);
         }
 
@@ -79,7 +79,7 @@ public class AuthService {
                 .relation(request.getRelation())
                 .region(request.getRegion())
                 .childCount(request.getChildCount())
-                .certFileUrl(request.getCertFileUrl())
+                .certFileUrl(request.getCertFileUrl() != null ? request.getCertFileUrl() : "")
                 .build();
 
         Parent saved = parentRepository.save(parent);
@@ -222,9 +222,7 @@ public class AuthService {
 
     @Transactional
     public void withdraw(Long parentId, String accessToken, String refreshToken, HttpServletResponse response) {
-        Parent parent = parentRepository.findByIdAndDeletedAtIsNull(parentId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.PARENT_NOT_FOUND));
-        parent.withdraw();
+        parentService.withdraw(parentId);
         logout(accessToken, refreshToken, response);
     }
 
