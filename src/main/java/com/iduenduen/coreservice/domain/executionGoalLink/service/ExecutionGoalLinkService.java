@@ -4,11 +4,13 @@ import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHistory;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
+import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.UnlinkedExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.entity.ExecutionGoalLink;
 import com.iduenduen.coreservice.domain.executionGoalLink.repository.ExecutionGoalLinkRepository;
+import com.iduenduen.coreservice.domain.goals.repository.GoalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,8 @@ public class ExecutionGoalLinkService {
 
     private final ExecutionGoalLinkRepository executionGoalLinkRepository;
     private final AccountEtfHistoryRepository accountEtfHistoryRepository;
+    private final ChildrenRepository childrenRepository;
+    private final GoalRepository goalRepository;
 
     @Transactional
     public Long createLink(Long parentId, Long etfHistoryId,
@@ -50,14 +54,23 @@ public class ExecutionGoalLinkService {
             .toList();
     }
 
-    @Transactional
-    public void link(Long linkId, LinkRequest req) {
+    public void link(Long parentId, Long linkId, LinkRequest req) {
         ExecutionGoalLink link = executionGoalLinkRepository.findById(linkId)
-            .orElseThrow(() -> new GeneralException(ErrorStatus.EXECUTION_LINK_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.EXECUTION_LINK_NOT_FOUND));
+
+        if (!link.getParentId().equals(parentId)) {
+            throw new GeneralException(ErrorStatus.FORBIDDEN);
+        }
 
         if (link.getLinkedAt() != null) {
             throw new GeneralException(ErrorStatus.EXECUTION_LINK_ALREADY_LINKED);
         }
+
+        childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(req.childId(), parentId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+
+        goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(req.goalId(), req.childId(), parentId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.GOAL_NOT_FOUND));
 
         link.link(req.childId(), req.goalId(), req.memo());
     }
