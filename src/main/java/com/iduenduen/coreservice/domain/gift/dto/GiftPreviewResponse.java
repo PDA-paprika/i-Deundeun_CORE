@@ -24,5 +24,8 @@ public record GiftPreviewResponse(
         LocalDate firstTransferDate,
 
         @JsonProperty("last_transfer_date")
-        LocalDate lastTransferDate
+        LocalDate lastTransferDate,
+
+        @JsonProperty("remaining_tax_free_limit")
+        Long remainingTaxFreeLimit
 ) {}
