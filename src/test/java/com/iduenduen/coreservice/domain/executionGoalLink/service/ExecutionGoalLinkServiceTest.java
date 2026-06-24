@@ -56,7 +56,7 @@ class ExecutionGoalLinkServiceTest {
         history = AccountEtfHistory.builder()
             .accountId(1L)
             .eventType(EtfEventType.BUY)
-            .etfId("ETF001")
+            .etfId(1L)
             .qtyDelta(3)
             .price(50_000L)
             .occurredAt(LocalDateTime.now())
@@ -116,7 +116,7 @@ class ExecutionGoalLinkServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).id()).isEqualTo(LINK_ID);
-        assertThat(result.get(0).EtfId()).isEqualTo("ETF001");
+        assertThat(result.get(0).etfId()).isEqualTo(1L);
     }
 
     @Test
@@ -138,7 +138,7 @@ class ExecutionGoalLinkServiceTest {
     void link_성공() {
         given(executionGoalLinkRepository.findById(LINK_ID)).willReturn(Optional.of(unlinkedLink));
 
-        executionGoalLinkService.link(LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, "대학 등록금"));
+        executionGoalLinkService.link(PARENT_ID, LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, "대학 등록금"));
 
         assertThat(unlinkedLink.getChildId()).isEqualTo(CHILD_ID);
         assertThat(unlinkedLink.getGoalId()).isEqualTo(GOAL_ID);
@@ -150,7 +150,7 @@ class ExecutionGoalLinkServiceTest {
         given(executionGoalLinkRepository.findById(LINK_ID)).willReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-            executionGoalLinkService.link(LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, "메모")))
+            executionGoalLinkService.link(PARENT_ID, LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, "메모")))
             .isInstanceOf(GeneralException.class);
     }
 
@@ -160,7 +160,7 @@ class ExecutionGoalLinkServiceTest {
         given(executionGoalLinkRepository.findById(LINK_ID)).willReturn(Optional.of(unlinkedLink));
 
         assertThatThrownBy(() ->
-            executionGoalLinkService.link(LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, "새 메모")))
+            executionGoalLinkService.link(PARENT_ID, LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, "새 메모")))
             .isInstanceOf(GeneralException.class);
     }
 
@@ -178,7 +178,7 @@ class ExecutionGoalLinkServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).childId()).isEqualTo(CHILD_ID);
-        assertThat(result.get(0).EtfId()).isEqualTo("ETF001");
+        assertThat(result.get(0).etfId()).isEqualTo(1L);
     }
 
     @Test

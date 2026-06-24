@@ -6,6 +6,7 @@ import com.iduenduen.coreservice.domain.account.entity.Account;
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHistory;
 import com.iduenduen.coreservice.domain.account.enums.AccountType;
 import com.iduenduen.coreservice.domain.account.enums.EtfEventType;
+import com.iduenduen.coreservice.domain.account.enums.ReferenceType;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 import com.iduenduen.coreservice.domain.executionGoalLink.service.ExecutionGoalLinkService;
@@ -81,7 +82,7 @@ class AccountServiceTest {
 
         var response = accountService.getBalance(ACCOUNT_ID);
 
-        assertThat(response.getAvailableCash()).isEqualTo(1_000_000L);
+        assertThat(response.getAvailableAmt()).isEqualTo(1_000_000L);
     }
 
     @Test
@@ -104,7 +105,7 @@ class AccountServiceTest {
         given(executionGoalLinkService.createLink(eq(PARENT_ID), eq(100L), isNull(), isNull(), isNull())).willReturn(1L);
 
         EtfTradeNotificationRequest req = new EtfTradeNotificationRequest(
-            ACCOUNT_ID, PARENT_ID, EtfEventType.BUY, "ETF001",
+            ACCOUNT_ID, PARENT_ID, EtfEventType.BUY, null, "ETF001",
             3, 50_000L, null, null, null, null, null,
             LocalDateTime.now()
         );
@@ -126,7 +127,7 @@ class AccountServiceTest {
         given(executionGoalLinkService.createLink(eq(PARENT_ID), eq(100L), isNull(), isNull(), isNull())).willReturn(1L);
 
         EtfTradeNotificationRequest req = new EtfTradeNotificationRequest(
-            ACCOUNT_ID, PARENT_ID, EtfEventType.BUY, "ETF001",
+            ACCOUNT_ID, PARENT_ID, EtfEventType.BUY, null, "ETF001",
             3, 50_000L, null, null, null, null, null,
             LocalDateTime.now()
         );
@@ -145,7 +146,7 @@ class AccountServiceTest {
         given(executionGoalLinkService.createLink(eq(PARENT_ID), eq(101L), eq(1L), eq(1L), eq("목표 달성용 매도"))).willReturn(2L);
 
         EtfTradeNotificationRequest req = new EtfTradeNotificationRequest(
-            ACCOUNT_ID, PARENT_ID, EtfEventType.SELL, "ETF001",
+            ACCOUNT_ID, PARENT_ID, EtfEventType.SELL, null, "ETF001",
             1, 52_000L, null, null, 1L, 1L, "목표 달성용 매도",
             LocalDateTime.now()
         );
@@ -163,7 +164,7 @@ class AccountServiceTest {
         given(executionGoalLinkService.createLink(eq(PARENT_ID), eq(101L), eq(1L), eq(1L), eq("목표 달성용 매도"))).willReturn(2L);
 
         EtfTradeNotificationRequest req = new EtfTradeNotificationRequest(
-            ACCOUNT_ID, PARENT_ID, EtfEventType.SELL, "ETF001",
+            ACCOUNT_ID, PARENT_ID, EtfEventType.SELL, null, "ETF001",
             1, 52_000L, null, null, 1L, 1L, "목표 달성용 매도",
             LocalDateTime.now()
         );

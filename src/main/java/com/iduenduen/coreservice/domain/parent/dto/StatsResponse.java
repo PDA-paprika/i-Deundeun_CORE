@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@Setter
 @NoArgsConstructor
 public class StatsResponse {
 
@@ -27,6 +26,7 @@ public class StatsResponse {
     @JsonProperty("comment")
     private String comment;
 
+    @Setter
     @JsonProperty("distribution")
     private List<Double> distribution;
 }
