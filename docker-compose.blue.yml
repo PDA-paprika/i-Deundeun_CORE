@@ -8,4 +8,6 @@ services:
       - /home/ubuntu/app/application.yml:/app/application.yml
     environment:
       SPRING_CONFIG_LOCATION: /app/application.yml
+    dns:
+      - 172.30.0.2
     restart: always
