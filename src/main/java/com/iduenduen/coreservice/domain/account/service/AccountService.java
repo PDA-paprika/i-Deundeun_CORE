@@ -101,7 +101,7 @@ public class AccountService {
         accountEtfHistoryRepository.save(history);
 
         return executionGoalLinkService.createLink(
-                req.parentId(), history.getId(), req.childId(), req.goalId(), req.memo());
+                req.parentId(), history.getId(), null, null, req.memo());
     }
 
     public AccountHoldingsResponse getHoldings(Long accountId) {
