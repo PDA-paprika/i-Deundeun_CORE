@@ -16,12 +16,15 @@ public class StatsResponse {
     @JsonProperty("mean")
     private Double mean;
 
-    @JsonProperty("q25")
-    private Double q25;
+    @JsonProperty("p25")
+    private Double p25;
 
-    @JsonProperty("q75")
-    private Double q75;
+    @JsonProperty("p75")
+    private Double p75;
 
     @JsonProperty("comment")
     private String comment;
+
+    @JsonProperty("distribution")
+    private List<Double> distribution;
 }

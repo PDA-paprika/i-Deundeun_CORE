@@ -201,9 +201,15 @@ public class ParentService {
                 parentId, request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
 
         Parent parent = findActiveParent(parentId);
-        Integer residenceRegion = jdbcTemplate.queryForObject(
+        log.info("[Parent] 지역 매핑 조회 - parentId={}, region={}", parentId, parent.getRegion());
+        List<Integer> regionResult = jdbcTemplate.queryForList(
                 "SELECT residence_region FROM region_mapping WHERE region = ?",
                 Integer.class, parent.getRegion());
+        if (regionResult.isEmpty()) {
+            log.warn("[Parent] 지역 매핑 없음 - region={}", parent.getRegion());
+            throw new GeneralException(ErrorStatus.NOT_FOUND);
+        }
+        Integer residenceRegion = regionResult.get(0);
 
         List<Integer> distribution = fetchDistribution(
                 request.getGoalType1(), request.getGoalType2(), request.getGoalType3(),
