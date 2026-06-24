@@ -125,7 +125,6 @@ public class ChildrenService {
 
 		Account childAccount = Account.builder()
 			.childId(registered.getId())
-			.parentId(parentId)
 			.accountType(AccountType.CHILD)
 			.accountNumber(request.securitiesAccount())
 			.availableAmt(0L)
