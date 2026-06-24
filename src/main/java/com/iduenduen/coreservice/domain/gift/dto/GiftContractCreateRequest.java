@@ -39,6 +39,9 @@ public record GiftContractCreateRequest(
 	@JsonProperty("external_etf_id")
 	Long externalEtfId,
 
+	@JsonProperty("etf_code")
+	String etfCode,
+
 	Integer qty
 ) {
 }
