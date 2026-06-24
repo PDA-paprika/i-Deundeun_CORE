@@ -1,13 +1,14 @@
 package com.iduenduen.coreservice.domain.parent.service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.iduenduen.coreservice.domain.parent.dto.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestClient;
 
-import com.iduenduen.coreservice.domain.account.entity.AccountEtfHolding;
 import com.iduenduen.coreservice.domain.account.repository.AccountCashHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHoldingRepository;
@@ -26,14 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.goals.repository.GoalFrequencyProjection;
-import com.iduenduen.coreservice.domain.parent.dto.ParentFrequencyRequest;
-import com.iduenduen.coreservice.domain.parent.dto.ParentFrequencyResponse;
-import com.iduenduen.coreservice.domain.parent.dto.ParentResponse;
-import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateRequest;
-import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateResponse;
-import com.iduenduen.coreservice.domain.parent.dto.SelectedChildRequest;
-import com.iduenduen.coreservice.domain.parent.dto.SelectedChildResponse;
-import com.iduenduen.coreservice.domain.parent.dto.WizardProfileRequest;
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
 import com.iduenduen.coreservice.domain.account.entity.Account;
@@ -53,6 +46,7 @@ public class ParentService {
     private final RestClient restClient = RestClient.create();
 
     private final ParentRepository parentRepository;
+    private final JdbcTemplate jdbcTemplate;
     private final AccountRepository accountRepository;
     private final AccountEtfHoldingRepository accountEtfHoldingRepository;
     private final AccountCashHistoryRepository accountCashHistoryRepository;
@@ -187,11 +181,28 @@ public class ParentService {
 
         Parent parent = findActiveParent(parentId);
 
-        Integer returnedCluster = restClient.post()
+        Integer urbanFlag = jdbcTemplate.queryForList(
+                "SELECT urban_flag FROM region_mapping WHERE region = ?",
+                Integer.class, parent.getRegion())
+                .stream().findFirst().orElse(0);
+
+        ReclusterRequest reclusterRequest = ReclusterRequest.builder()
+                .relation(parent.getRelation())
+                .urbanFlag(urbanFlag)
+                .monthlyHouseholdIncome(parent.getMonthlyHouseholdIncome())
+                .educationLevel(parent.getEducationLevel())
+                .parentEconomicActivity(parent.getParentEconomicActivity())
+                .childCount(parent.getChildCount())
+                .build();
+
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Integer> response = restClient.post()
                 .uri(assistantServiceUrl + "/parents/recluster")
-                .body(Map.of("parent_id", parentId))
+                .body(reclusterRequest)
                 .retrieve()
-                .body(Integer.class);
+                .body(java.util.Map.class);
+
+        Integer returnedCluster = response != null ? response.get("cluster_value") : null;
 
         log.info("[Parent] 서비스 응답 수신 - parentId={}, clusterValue={}", parentId, returnedCluster);
 
@@ -199,6 +210,120 @@ public class ParentService {
         log.info("[Parent] cluster_value 업데이트 완료 - parentId={}, clusterValue={}", parentId, returnedCluster);
 
         return returnedCluster;
+    }
+
+    public StatsResponse getStatsKor(Long parentId, StatsKorRequest request) {
+        log.info("[Parent] 국가통계 조회 - parentId={}, goalType1={}, goalType2={}, goalType3={}",
+                parentId, request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
+
+        Parent parent = findActiveParent(parentId);
+        log.info("[Parent] 지역 매핑 조회 - parentId={}, region={}", parentId, parent.getRegion());
+        List<Integer> regionResult = jdbcTemplate.queryForList(
+                "SELECT residence_region FROM region_mapping WHERE region = ?",
+                Integer.class, parent.getRegion());
+        if (regionResult.isEmpty()) {
+            log.warn("[Parent] 지역 매핑 없음 - region={}", parent.getRegion());
+            throw new GeneralException(ErrorStatus.NOT_FOUND);
+        }
+        Integer residenceRegion = regionResult.get(0);
+
+        List<Integer> distribution = fetchDistribution(
+                request.getGoalType1(), request.getGoalType2(), request.getGoalType3(),
+                residenceRegion, parent.getParentEconomicActivity(), parent.getMonthlyHouseholdIncome());
+
+        StatsKorRequest requestWithDist = StatsKorRequest.builder()
+                .goalType1(request.getGoalType1())
+                .goalType2(request.getGoalType2())
+                .goalType3(request.getGoalType3())
+                .distribution(distribution)
+                .build();
+
+        StatsResponse response = restClient.post()
+                .uri(assistantServiceUrl + "/stats/kor")
+                .body(requestWithDist)
+                .retrieve()
+                .body(StatsResponse.class);
+
+        if (response != null) {
+            response.setDistribution(distribution.stream().map(Double::valueOf).toList());
+        }
+        return response;
+    }
+
+    private List<Integer> fetchDistribution(Integer g1, Integer g2, Integer g3,
+                                             Integer residenceRegion, Integer economicActivity, Integer income) {
+        if (g1 == 1 && (g2 == 2 || g2 == 3)) {
+            return jdbcTemplate.queryForList("""
+                    SELECT total_amount FROM elementary_middle_education_stat
+                    WHERE school_level = ?
+                      AND residence_region = ?
+                      AND parent_economic_activity = ?
+                      AND monthly_household_income = ?
+                      AND desired_high_school_type = ?
+                    """,
+                    Integer.class, g2, residenceRegion, economicActivity, income, g3);
+        } else if (g1 == 1 && g2 == 4) {
+            return jdbcTemplate.queryForList("""
+                    SELECT total_amount FROM high_school_education_stat
+                    WHERE school_level = ?
+                      AND residence_region = ?
+                      AND parent_economic_activity = ?
+                      AND monthly_household_income = ?
+                      AND desired_university_major = ?
+                    """,
+                    Integer.class, g2, residenceRegion, economicActivity, income, g3);
+        } else if (g1 == 2) {
+            int cappedIncome = income < 6 ? income : 6;
+            return jdbcTemplate.queryForList("""
+                    SELECT total_amount FROM living_stat
+                    WHERE school_name = ?
+                      AND parent_economic_activity = ?
+                      AND monthly_household_income = ?
+                    """,
+                    Integer.class, String.valueOf(g2), String.valueOf(economicActivity), String.valueOf(cappedIncome));
+        }
+        return List.of();
+    }
+
+    public StatsResponse getStatsPersonal(Long parentId, StatsPersonalRequest request) {
+        log.info("[Parent] 개인통계 조회 - parentId={}, goalType1={}, goalType2={}, goalType3={}",
+                parentId, request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
+
+        Parent parent = findActiveParent(parentId);
+
+        List<Integer> distribution = jdbcTemplate.queryForList("""
+                SELECT go.target_amount
+                FROM goals go
+                JOIN parents p ON go.parent_id = p.id
+                WHERE p.cluster_value = ?
+                  AND go.goal_type1   = ?
+                  AND go.goal_type2   = ?
+                  AND go.goal_type3   <=> ?
+                  AND go.parent_id   != ?
+                  AND go.deleted_at   IS NULL
+                """,
+                Integer.class,
+                parent.getClusterValue(), request.getGoalType1(), request.getGoalType2(),
+                request.getGoalType3(), parentId);
+
+        StatsPersonalRequest requestWithDist = StatsPersonalRequest.builder()
+                .goalType1(request.getGoalType1())
+                .goalType2(request.getGoalType2())
+                .goalType3(request.getGoalType3())
+                .clusterValue(parent.getClusterValue())
+                .distribution(distribution)
+                .build();
+
+        StatsResponse response = restClient.post()
+                .uri(assistantServiceUrl + "/stats/personal")
+                .body(requestWithDist)
+                .retrieve()
+                .body(StatsResponse.class);
+
+        if (response != null) {
+            response.setDistribution(distribution.stream().map(Double::valueOf).toList());
+        }
+        return response;
     }
 
     public List<ParentFrequencyResponse> getFrequency(ParentFrequencyRequest request) {

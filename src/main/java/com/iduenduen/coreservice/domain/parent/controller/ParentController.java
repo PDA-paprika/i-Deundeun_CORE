@@ -2,6 +2,7 @@ package com.iduenduen.coreservice.domain.parent.controller;
 
 import java.util.Map;
 
+import com.iduenduen.coreservice.domain.parent.dto.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,12 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
-import com.iduenduen.coreservice.domain.parent.dto.ParentResponse;
-import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateRequest;
-import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateResponse;
-import com.iduenduen.coreservice.domain.parent.dto.SelectedChildRequest;
-import com.iduenduen.coreservice.domain.parent.dto.SelectedChildResponse;
-import com.iduenduen.coreservice.domain.parent.dto.WizardProfileRequest;
 import com.iduenduen.coreservice.domain.parent.service.ParentService;
 
 import lombok.RequiredArgsConstructor;
@@ -77,6 +72,20 @@ public class ParentController {
     @PostMapping("/recluster")
     public ResponseEntity<ApiResponse<Integer>> recluster(@AuthenticationPrincipal Long parentId) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.recluster(parentId));
+    }
+
+    @PostMapping("/stats/kor")
+    public ResponseEntity<ApiResponse<StatsResponse>> getStatsKor(
+            @AuthenticationPrincipal Long parentId,
+            @RequestBody StatsKorRequest request) {
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.getStatsKor(parentId, request));
+    }
+
+    @PostMapping("/stats/personal")
+    public ResponseEntity<ApiResponse<StatsResponse>> getStatsPersonal(
+            @AuthenticationPrincipal Long parentId,
+            @RequestBody StatsPersonalRequest request) {
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, parentService.getStatsPersonal(parentId, request));
     }
 
     @GetMapping("/holdings")
