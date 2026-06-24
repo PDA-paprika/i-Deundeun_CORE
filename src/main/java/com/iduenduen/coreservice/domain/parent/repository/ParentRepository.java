@@ -14,7 +14,7 @@ public interface ParentRepository extends JpaRepository<Parent, Long> {
 
     Optional<Parent> findByEmailAndDeletedAtIsNull(String email);
 
-    boolean existsByEmail(String email);
+    boolean existsByEmailAndDeletedAtIsNull(String email);
 
-    boolean existsByAccountNumber(String accountNumber);
+    boolean existsByAccountNumberAndDeletedAtIsNull(String accountNumber);
 }

@@ -32,7 +32,7 @@ public class EmailVerificationService {
     // 이메일 인증 코드 요청
     @Transactional
     public void requestEmailVerificationCode(String email) {
-        if (parentRepository.existsByEmail(email)) {
+        if (parentRepository.existsByEmailAndDeletedAtIsNull(email)) {
             throw new GeneralException(ErrorStatus.DUPLICATE_EMAIL);
         }
         String verificationCode = createEmailVerificationCode();

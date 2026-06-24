@@ -63,10 +63,10 @@ public class AuthService {
 
         emailVerificationService.isEmailVerified(request.getEmail());
 
-        if (parentRepository.existsByEmail(request.getEmail())) {
+        if (parentRepository.existsByEmailAndDeletedAtIsNull(request.getEmail())) {
             throw new GeneralException(ErrorStatus.DUPLICATE_EMAIL);
         }
-        if (parentRepository.existsByAccountNumber(request.getAccountNumber())) {
+        if (parentRepository.existsByAccountNumberAndDeletedAtIsNull(request.getAccountNumber())) {
             throw new GeneralException(ErrorStatus.DUPLICATE_ACCOUNT_NUMBER);
         }
 
