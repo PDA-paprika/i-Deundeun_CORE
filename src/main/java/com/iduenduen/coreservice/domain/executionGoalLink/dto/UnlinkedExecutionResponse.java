@@ -21,6 +21,9 @@ public record UnlinkedExecutionResponse(
     @JsonProperty("etf_id")
     Long etfId,
 
+    @JsonProperty("etf_name")
+    String etfName,
+
     @JsonProperty("qty_delta")
     int qtyDelta,
 
@@ -36,14 +39,15 @@ public record UnlinkedExecutionResponse(
 ) {
     public static UnlinkedExecutionResponse of(ExecutionGoalLink link, AccountEtfHistory history) {
         return new UnlinkedExecutionResponse(
-            link.getId(),
-            history.getId(),
-            history.getEventType(),
-            history.getEtfId(),
-            history.getQtyDelta(),
-            history.getPrice(),
-            history.getOccurredAt(),
-            link.getCreatedAt()
+                link.getId(),
+                history.getId(),
+                history.getEventType(),
+                history.getEtfId(),
+                history.getEtfNameSnapshot(),  // ← 여기
+                history.getQtyDelta(),
+                history.getPrice(),
+                history.getOccurredAt(),
+                link.getCreatedAt()
         );
     }
 }
