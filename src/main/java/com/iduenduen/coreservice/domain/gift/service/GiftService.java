@@ -137,6 +137,7 @@ public class GiftService {
 		contract.updateTitle(title);
 	}
 
+	@Transactional
 	public void cancelGiftContract(Long parentId, Long contractId) {
 		GiftContract contract = giftContractRepository.findByIdAndParentId(contractId, parentId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.GIFT_CONTRACT_NOT_FOUND));
