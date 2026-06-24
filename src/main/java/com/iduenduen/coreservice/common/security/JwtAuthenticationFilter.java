@@ -49,6 +49,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	private boolean isBlacklisted(String token) {
-		return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + token));
+		try {
+			return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + token));
+		} catch (Exception e) {
+			return false;
+		}
 	}
 }
