@@ -238,11 +238,16 @@ public class ParentService {
                 .distribution(distribution)
                 .build();
 
-        return restClient.post()
+        StatsResponse response = restClient.post()
                 .uri(assistantServiceUrl + "/stats/kor")
                 .body(requestWithDist)
                 .retrieve()
                 .body(StatsResponse.class);
+
+        if (response != null) {
+            response.setDistribution(distribution.stream().map(Double::valueOf).toList());
+        }
+        return response;
     }
 
     private List<Integer> fetchDistribution(Integer g1, Integer g2, Integer g3,
@@ -309,11 +314,16 @@ public class ParentService {
                 .distribution(distribution)
                 .build();
 
-        return restClient.post()
+        StatsResponse response = restClient.post()
                 .uri(assistantServiceUrl + "/stats/personal")
                 .body(requestWithDist)
                 .retrieve()
                 .body(StatsResponse.class);
+
+        if (response != null) {
+            response.setDistribution(distribution.stream().map(Double::valueOf).toList());
+        }
+        return response;
     }
 
     public List<ParentFrequencyResponse> getFrequency(ParentFrequencyRequest request) {
