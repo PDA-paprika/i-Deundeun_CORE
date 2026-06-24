@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Async;
 
 import com.iduenduen.coreservice.domain.parent.dto.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -324,6 +325,52 @@ public class ParentService {
             response.setDistribution(distribution.stream().map(Double::valueOf).toList());
         }
         return response;
+    }
+
+    @Async
+    @Transactional
+    public void train() {
+        log.info("[Parent] 클러스터 학습 시작");
+
+        List<ParentFeatureRequest> features = jdbcTemplate.query("""
+                SELECT p.id,
+                       p.relation,
+                       rm.urban_flag,
+                       p.parent_economic_activity,
+                       p.monthly_household_income,
+                       p.education_level,
+                       p.child_count
+                FROM parents p
+                JOIN region_mapping rm ON rm.region = p.region
+                WHERE p.deleted_at IS NULL
+                """,
+                (rs, rowNum) -> ParentFeatureRequest.builder()
+                        .parentId(rs.getLong("id"))
+                        .relation(rs.getString("relation"))
+                        .urbanFlag(rs.getInt("urban_flag"))
+                        .parentEconomicActivity(rs.getInt("parent_economic_activity"))
+                        .monthlyHouseholdIncome(rs.getInt("monthly_household_income"))
+                        .educationLevel(rs.getInt("education_level"))
+                        .childCount(rs.getInt("child_count"))
+                        .build());
+
+        log.info("[Parent] 학습 대상 부모 수: {}", features.size());
+
+        ClusterTrainResponse[] results = restClient.post()
+                .uri(assistantServiceUrl + "/cluster/train")
+                .body(features)
+                .retrieve()
+                .body(ClusterTrainResponse[].class);
+
+        if (results == null) return;
+
+        for (ClusterTrainResponse result : results) {
+            jdbcTemplate.update(
+                    "UPDATE parents SET cluster_value = ? WHERE id = ?",
+                    result.getClusterValue(), result.getParentId());
+        }
+
+        log.info("[Parent] 클러스터 학습 완료 - 업데이트 수: {}", results.length);
     }
 
     public List<ParentFrequencyResponse> getFrequency(ParentFrequencyRequest request) {
