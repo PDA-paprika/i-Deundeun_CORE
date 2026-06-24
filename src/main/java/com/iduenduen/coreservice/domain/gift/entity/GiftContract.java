@@ -80,6 +80,15 @@ public class GiftContract extends BaseEntity {
 	@Column(name = "discount_rate", nullable = false, precision = 5, scale = 4)
 	private BigDecimal discountRate = DEFAULT_DISCOUNT_RATE;
 
+	@Column(name = "valuation_base_date")
+	private LocalDate valuationBaseDate;
+
+	@Column(name = "estimated_gift_amount")
+	private Long estimatedGiftAmount;
+
+	@Column(name = "final_gift_amount")
+	private Long finalGiftAmount;
+
 	@Column(name = "cancelled_at")
 	private LocalDateTime cancelledAt;
 
@@ -107,6 +116,15 @@ public class GiftContract extends BaseEntity {
 
 	public void updateTitle(String title) {
 		this.title = title;
+	}
+
+	public void initEtfValuation(LocalDate valuationBaseDate, Long estimatedGiftAmount) {
+		this.valuationBaseDate = valuationBaseDate;
+		this.estimatedGiftAmount = estimatedGiftAmount;
+	}
+
+	public void confirmFinalGiftAmount(Long finalGiftAmount) {
+		this.finalGiftAmount = finalGiftAmount;
 	}
 
 	public void activate() {
