@@ -22,6 +22,9 @@ public record GiftContractDetailResponse(
         @JsonProperty("end_date") LocalDate endDate,
         @JsonProperty("external_etf_id") Long externalEtfId,
         Integer qty,
+        @JsonProperty("valuation_base_date") LocalDate valuationBaseDate,
+        @JsonProperty("estimated_gift_amount") Long estimatedGiftAmount,
+        @JsonProperty("final_gift_amount") Long finalGiftAmount,
         @JsonProperty("transfer_count") int transferCount,
         List<TransferItem> transfers
 ) {
@@ -59,6 +62,9 @@ public record GiftContractDetailResponse(
                 contract.getEndDate(),
                 contract.getExternalEtfId(),
                 contract.getQty(),
+                contract.getValuationBaseDate(),
+                contract.getEstimatedGiftAmount(),
+                contract.getFinalGiftAmount(),
                 transfers.size(),
                 transfers.stream().map(TransferItem::from).toList()
         );

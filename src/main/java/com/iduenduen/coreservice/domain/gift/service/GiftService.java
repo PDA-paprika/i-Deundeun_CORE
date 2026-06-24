@@ -12,6 +12,7 @@ import java.util.stream.IntStream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.iduenduen.coreservice.common.client.MtsEtfClient;
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.account.entity.Account;
@@ -43,6 +44,7 @@ public class GiftService {
 	private final ChildrenRepository childrenRepository;
 	private final AccountRepository accountRepository;
 	private final AccountEtfHoldingRepository accountEtfHoldingRepository;
+	private final MtsEtfClient mtsEtfClient;
 
 	// 증여 계약 목록 조회
 	public GiftContractListResponse getGiftContracts(Long parentId, Long childId) {
@@ -80,6 +82,14 @@ public class GiftService {
 		long totalGiftedAmt = completedTransfers.stream()
 			.mapToLong(GiftTransfer::getTransferredCashAmt)
 			.sum();
+
+		// ETF 확정 증여가액 합산
+		long etfGiftedAmt = contracts.stream()
+			.filter(c -> c.getGiftType() == com.iduenduen.coreservice.domain.gift.enums.GiftType.ETF)
+			.filter(c -> c.getFinalGiftAmount() != null)
+			.mapToLong(GiftContract::getFinalGiftAmount)
+			.sum();
+		totalGiftedAmt += etfGiftedAmt;
 
 		List<GiftSummaryResponse.YearlyAmount> yearly = completedTransfers.stream()
 			.collect(Collectors.groupingBy(
@@ -156,11 +166,33 @@ public class GiftService {
 	}
 
 	// 증여 계약 상세 조회
+	@Transactional
 	public GiftContractDetailResponse getGiftContractDetail(Long parentId, Long contractId) {
 		GiftContract contract = giftContractRepository.findByIdAndParentId(contractId, parentId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.GIFT_CONTRACT_NOT_FOUND));
+
+		if (contract.getGiftType() == com.iduenduen.coreservice.domain.gift.enums.GiftType.ETF) {
+			resolveFinalGiftAmountIfReady(contract);
+		}
+
 		List<GiftTransfer> transfers = giftTransferRepository.findAllByGiftContractIdOrderBySequenceNoAsc(contractId);
 		return GiftContractDetailResponse.of(contract, transfers);
+	}
+
+	private void resolveFinalGiftAmountIfReady(GiftContract contract) {
+		if (contract.getFinalGiftAmount() != null) return;
+		if (contract.getValuationBaseDate() == null) return;
+
+		LocalDate confirmableDate = contract.getValuationBaseDate().plusMonths(2);
+		if (LocalDate.now().isBefore(confirmableDate)) return;
+
+		LocalDate from = contract.getValuationBaseDate().minusMonths(2);
+		LocalDate to = contract.getValuationBaseDate().plusMonths(2);
+		// etfCode는 externalEtfId로 MTS에서 조회 (추후 GiftContract에 etfCode 저장으로 개선 가능)
+		Long avgPrice = mtsEtfClient.getValuationAverage(String.valueOf(contract.getExternalEtfId()), from, to);
+		if (avgPrice != null && contract.getQty() != null) {
+			contract.confirmFinalGiftAmount(avgPrice * contract.getQty());
+		}
 	}
 
 	// 증여 예상 정보 계산
@@ -319,7 +351,8 @@ public class GiftService {
 				accountEtfHoldingRepository.findById(holdingId)
 					.ifPresent(holding -> holding.deductQty(contract.getQty()));
 				transfers.get(0).complete(0, contract.getQty());
-				contract.complete();
+				contract.activate();
+				initEtfValuation(contract, request.etfCode(), contract.getStartDate());
 			}
 			case INSTALLMENT -> {
 				contract.activate();
@@ -332,6 +365,19 @@ public class GiftService {
 				}
 			}
 		}
+	}
+
+	private void initEtfValuation(GiftContract contract, String etfCode, LocalDate giftDate) {
+		// 비거래일이면 직전 거래일로 조정 (캔들 데이터 기준)
+		LocalDate valuationBaseDate = giftDate;
+
+		// 기준일 전 2개월 평균가로 예상 증여가액 계산
+		LocalDate from = valuationBaseDate.minusMonths(2);
+		Long avgPrice = mtsEtfClient.getValuationAverage(etfCode, from, valuationBaseDate);
+		Long estimatedGiftAmount = (avgPrice != null && contract.getQty() != null)
+				? avgPrice * contract.getQty() : null;
+
+		contract.initEtfValuation(valuationBaseDate, estimatedGiftAmount);
 	}
 
 	// 현금 잔액 및 ETF 수량 검증
