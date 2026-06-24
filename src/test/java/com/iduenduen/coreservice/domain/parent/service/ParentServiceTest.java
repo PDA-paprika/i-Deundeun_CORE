@@ -2,9 +2,13 @@ package com.iduenduen.coreservice.domain.parent.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -12,9 +16,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.iduenduen.coreservice.common.exception.GeneralException;
+import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
+import com.iduenduen.coreservice.domain.account.repository.AccountCashHistoryRepository;
+import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
+import com.iduenduen.coreservice.domain.account.repository.AccountEtfHoldingRepository;
+import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
+import com.iduenduen.coreservice.domain.executionGoalLink.repository.ExecutionGoalLinkRepository;
+import com.iduenduen.coreservice.domain.gift.repository.GiftContractRepository;
+import com.iduenduen.coreservice.domain.gift.repository.GiftTransferRepository;
+import com.iduenduen.coreservice.domain.goals.repository.GoalRepository;
+import com.iduenduen.coreservice.domain.onboarding.repository.UserAgreementRepository;
 import com.iduenduen.coreservice.domain.parent.dto.ParentUpdateRequest;
 import com.iduenduen.coreservice.domain.parent.dto.SelectedChildRequest;
 import com.iduenduen.coreservice.domain.parent.dto.WizardProfileRequest;
@@ -24,8 +39,18 @@ import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
 @ExtendWith(MockitoExtension.class)
 class ParentServiceTest {
 
-    @Mock
-    private ParentRepository parentRepository;
+    @Mock private ParentRepository parentRepository;
+    @Mock private JdbcTemplate jdbcTemplate;
+    @Mock private AccountRepository accountRepository;
+    @Mock private AccountEtfHoldingRepository accountEtfHoldingRepository;
+    @Mock private AccountCashHistoryRepository accountCashHistoryRepository;
+    @Mock private AccountEtfHistoryRepository accountEtfHistoryRepository;
+    @Mock private ChildrenRepository childrenRepository;
+    @Mock private GoalRepository goalRepository;
+    @Mock private GiftContractRepository giftContractRepository;
+    @Mock private GiftTransferRepository giftTransferRepository;
+    @Mock private UserAgreementRepository userAgreementRepository;
+    @Mock private ExecutionGoalLinkRepository executionGoalLinkRepository;
 
     @InjectMocks
     private ParentService parentService;
@@ -50,6 +75,7 @@ class ParentServiceTest {
     void getMe_성공() {
         Parent parent = createParent();
         given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(parent));
+        given(accountRepository.findByParentId(1L)).willReturn(Optional.empty());
 
         var response = parentService.getMe(1L);
 
@@ -104,16 +130,15 @@ class ParentServiceTest {
         given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(parent));
 
         WizardProfileRequest request = new WizardProfileRequest();
-        ReflectionTestUtils.setField(request, "incomeLevel", "MID");
-        ReflectionTestUtils.setField(request, "assetRange", "1-3억");
-        ReflectionTestUtils.setField(request, "educationHeat", 4);
-        ReflectionTestUtils.setField(request, "dualIncome", true);
+        ReflectionTestUtils.setField(request, "monthlyHouseholdIncome", 3);
+        ReflectionTestUtils.setField(request, "parentEconomicActivity", 1);
+        ReflectionTestUtils.setField(request, "educationLevel", 4);
 
         parentService.updateWizardProfile(1L, request);
 
-        assertThat(parent.getIncomeLevel()).isEqualTo("MID");
-        assertThat(parent.getEducationHeat()).isEqualTo(4);
-        assertThat(parent.getDualIncome()).isTrue();
+        assertThat(parent.getMonthlyHouseholdIncome()).isEqualTo(3);
+        assertThat(parent.getParentEconomicActivity()).isEqualTo(1);
+        assertThat(parent.getEducationLevel()).isEqualTo(4);
     }
 
     @Test
@@ -144,6 +169,12 @@ class ParentServiceTest {
     void withdraw_성공() {
         Parent parent = createParent();
         given(parentRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(parent));
+        given(executionGoalLinkRepository.findAllByParentId(1L)).willReturn(List.of());
+        given(accountRepository.findByParentId(1L)).willReturn(Optional.empty());
+        given(giftContractRepository.findAllByParentId(1L)).willReturn(List.of());
+        given(goalRepository.findAllByParentId(1L)).willReturn(List.of());
+        given(childrenRepository.findAllByParentId(1L)).willReturn(List.of());
+        given(userAgreementRepository.findAllByParent_Id(1L)).willReturn(List.of());
 
         parentService.withdraw(1L);
 

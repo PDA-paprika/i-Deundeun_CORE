@@ -2,9 +2,14 @@ package com.iduenduen.coreservice.domain.auth.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -19,11 +24,17 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.security.JwtProvider;
+import com.iduenduen.coreservice.domain.account.entity.Account;
+import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 import com.iduenduen.coreservice.domain.auth.dto.LoginRequest;
 import com.iduenduen.coreservice.domain.auth.dto.LoginResponse;
 import com.iduenduen.coreservice.domain.auth.dto.SignupRequest;
+import com.iduenduen.coreservice.domain.onboarding.entity.UserAgreement;
+import com.iduenduen.coreservice.domain.onboarding.enums.AgreementType;
+import com.iduenduen.coreservice.domain.onboarding.repository.UserAgreementRepository;
 import com.iduenduen.coreservice.domain.parent.entity.Parent;
 import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
+import com.iduenduen.coreservice.domain.parent.service.ParentService;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -31,6 +42,10 @@ import jakarta.servlet.http.HttpServletResponse;
 class AuthServiceTest {
 
     @Mock private ParentRepository parentRepository;
+    @Mock private AccountRepository accountRepository;
+    @Mock private UserAgreementRepository userAgreementRepository;
+    @Mock private EmailVerificationService emailVerificationService;
+    @Mock private ParentService parentService;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private JwtProvider jwtProvider;
     @Mock private StringRedisTemplate redisTemplate;
@@ -51,6 +66,16 @@ class AuthServiceTest {
         ReflectionTestUtils.setField(request, "region", "서울");
         ReflectionTestUtils.setField(request, "childCount", 1);
         ReflectionTestUtils.setField(request, "certFileUrl", "https://example.com/cert.pdf");
+
+        SignupRequest.AgreementItem terms = new SignupRequest.AgreementItem();
+        ReflectionTestUtils.setField(terms, "type", AgreementType.TERMS);
+        ReflectionTestUtils.setField(terms, "agreed", true);
+
+        SignupRequest.AgreementItem privacy = new SignupRequest.AgreementItem();
+        ReflectionTestUtils.setField(privacy, "type", AgreementType.PRIVACY);
+        ReflectionTestUtils.setField(privacy, "agreed", true);
+
+        ReflectionTestUtils.setField(request, "agreements", List.of(terms, privacy));
         return request;
     }
 
@@ -73,32 +98,44 @@ class AuthServiceTest {
     @Test
     void signup_성공() {
         SignupRequest request = createSignupRequest();
+        Parent saved = createParent();
+
+        doNothing().when(emailVerificationService).isEmailVerified(anyString());
         given(parentRepository.existsByEmail("test@example.com")).willReturn(false);
         given(parentRepository.existsByAccountNumber("1234567890")).willReturn(false);
         given(passwordEncoder.encode("mypassword123")).willReturn("encoded-password");
-        given(parentRepository.save(org.mockito.ArgumentMatchers.any(Parent.class))).willReturn(createParent());
+        given(parentRepository.save(any(Parent.class))).willReturn(saved);
+        given(accountRepository.save(any(Account.class))).willReturn(null);
+        given(userAgreementRepository.saveAll(any())).willReturn(List.of());
+        given(jwtProvider.createAccessToken(1L)).willReturn("access-token");
+        given(jwtProvider.createRefreshToken(1L)).willReturn("refresh-token");
+        given(jwtProvider.getRefreshTokenExpirationMs()).willReturn(1_209_600_000L);
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
 
-        var response = authService.signup(request);
+        var response = authService.signup(request, httpServletResponse);
 
         assertThat(response.getParentId()).isEqualTo(1L);
+        assertThat(response.getAccessToken()).isEqualTo("access-token");
     }
 
     @Test
     void signup_이메일이_중복되면_예외() {
         SignupRequest request = createSignupRequest();
+        doNothing().when(emailVerificationService).isEmailVerified(anyString());
         given(parentRepository.existsByEmail("test@example.com")).willReturn(true);
 
-        assertThatThrownBy(() -> authService.signup(request))
+        assertThatThrownBy(() -> authService.signup(request, httpServletResponse))
                 .isInstanceOf(GeneralException.class);
     }
 
     @Test
     void signup_계좌번호가_중복되면_예외() {
         SignupRequest request = createSignupRequest();
+        doNothing().when(emailVerificationService).isEmailVerified(anyString());
         given(parentRepository.existsByEmail("test@example.com")).willReturn(false);
         given(parentRepository.existsByAccountNumber("1234567890")).willReturn(true);
 
-        assertThatThrownBy(() -> authService.signup(request))
+        assertThatThrownBy(() -> authService.signup(request, httpServletResponse))
                 .isInstanceOf(GeneralException.class);
     }
 
@@ -106,7 +143,7 @@ class AuthServiceTest {
     void signup_필수값이_없으면_예외() {
         SignupRequest request = new SignupRequest();
 
-        assertThatThrownBy(() -> authService.signup(request))
+        assertThatThrownBy(() -> authService.signup(request, httpServletResponse))
                 .isInstanceOf(GeneralException.class);
     }
 
