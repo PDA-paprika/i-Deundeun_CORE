@@ -149,7 +149,7 @@ public class AccountService {
                             .avgBuyPrice(h.getAvgBuyPrice())
                             .build();
                 })
-                .filter(dto -> dto.qty() > 0)
+                .filter(dto -> dto.getQty() > 0)
                 .toList();
 
         return AccountHoldingsResponse.builder()
