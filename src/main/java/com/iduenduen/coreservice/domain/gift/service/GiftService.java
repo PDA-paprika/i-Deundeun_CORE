@@ -83,11 +83,11 @@ public class GiftService {
 			.mapToLong(GiftTransfer::getTransferredCashAmt)
 			.sum();
 
-		// ETF 확정 증여가액 합산
+		// ETF 증여가액 합산 (확정 없으면 예상금액 사용)
 		long etfGiftedAmt = contracts.stream()
 			.filter(c -> c.getGiftType() == com.iduenduen.coreservice.domain.gift.enums.GiftType.ETF)
-			.filter(c -> c.getFinalGiftAmount() != null)
-			.mapToLong(GiftContract::getFinalGiftAmount)
+			.filter(c -> c.getFinalGiftAmount() != null || c.getEstimatedGiftAmount() != null)
+			.mapToLong(c -> c.getFinalGiftAmount() != null ? c.getFinalGiftAmount() : c.getEstimatedGiftAmount())
 			.sum();
 		totalGiftedAmt += etfGiftedAmt;
 
