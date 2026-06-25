@@ -32,19 +32,14 @@ public class ExecutionGoalLinkService {
 
     @Transactional
     public Long createLink(Long parentId, Long etfHistoryId,
-                           Long childId, Long goalId, int qty, String memo) {
+                           Long childId, Long goalId, String memo) {
         AccountEtfHistory history = accountEtfHistoryRepository.findById(etfHistoryId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.EXECUTION_LINK_NOT_FOUND));
-
-        int usedQty = executionGoalLinkRepository.sumQtyByEtfHistoryId(etfHistoryId);
-        if (usedQty + qty > history.getQtyDelta()) {
-            throw new GeneralException(ErrorStatus.EXECUTION_LINK_QTY_EXCEEDED);
-        }
 
         ExecutionGoalLink link = ExecutionGoalLink.builder()
             .parentId(parentId)
             .etfHistoryId(etfHistoryId)
-            .qty(qty)
+            .qty(history.getQtyDelta())
             .build();
         executionGoalLinkRepository.save(link);
         link.link(childId, goalId, memo);

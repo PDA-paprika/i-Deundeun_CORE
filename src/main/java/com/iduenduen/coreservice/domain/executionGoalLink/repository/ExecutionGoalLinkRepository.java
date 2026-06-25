@@ -14,9 +14,6 @@ public interface ExecutionGoalLinkRepository extends JpaRepository<ExecutionGoal
 
     List<ExecutionGoalLink> findAllByParentId(Long parentId);
 
-    @Query("SELECT COALESCE(SUM(e.qty), 0) FROM ExecutionGoalLink e WHERE e.etfHistoryId = :etfHistoryId")
-    int sumQtyByEtfHistoryId(@Param("etfHistoryId") Long etfHistoryId);
-
     List<ExecutionGoalLink> findByGoalIdAndChildIdOrderByCreatedAtDesc(Long goalId, Long childId);
 
     @Query("SELECT h.etfId, SUM(l.qty) FROM ExecutionGoalLink l JOIN AccountEtfHistory h ON l.etfHistoryId = h.id WHERE l.parentId = :parentId GROUP BY h.etfId")

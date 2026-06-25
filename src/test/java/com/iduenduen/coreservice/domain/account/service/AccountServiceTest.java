@@ -109,7 +109,7 @@ class AccountServiceTest {
             ReflectionTestUtils.setField(h, "id", 100L);
             return h;
         });
-        given(executionGoalLinkService.createLink(eq(PARENT_ID), eq(100L), isNull(), isNull(), eq(3), isNull())).willReturn(1L);
+        given(executionGoalLinkService.createLink(eq(PARENT_ID), eq(100L), isNull(), isNull(), isNull())).willReturn(1L);
 
         EtfTradeNotificationRequest req = new EtfTradeNotificationRequest(
             ACCOUNT_ID, PARENT_ID, EtfEventType.BUY, null, "ETF001",
@@ -120,7 +120,7 @@ class AccountServiceTest {
         Long linkId = accountService.recordTrade(req);
 
         assertThat(linkId).isEqualTo(1L);
-        verify(executionGoalLinkService).createLink(PARENT_ID, 100L, null, null, 3, null);
+        verify(executionGoalLinkService).createLink(PARENT_ID, 100L, null, null, null);
     }
 
     @Test

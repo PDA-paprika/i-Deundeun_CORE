@@ -75,14 +75,13 @@ class ExecutionGoalLinkServiceTest {
     @Test
     void createLink_미태그_성공() {
         given(accountEtfHistoryRepository.findById(HISTORY_ID)).willReturn(Optional.of(history));
-        given(executionGoalLinkRepository.sumQtyByEtfHistoryId(HISTORY_ID)).willReturn(0);
         given(executionGoalLinkRepository.save(any(ExecutionGoalLink.class))).willAnswer(inv -> {
             ExecutionGoalLink l = inv.getArgument(0);
             ReflectionTestUtils.setField(l, "id", LINK_ID);
             return l;
         });
 
-        Long linkId = executionGoalLinkService.createLink(PARENT_ID, HISTORY_ID, null, null, QTY, null);
+        Long linkId = executionGoalLinkService.createLink(PARENT_ID, HISTORY_ID, null, null, null);
 
         ArgumentCaptor<ExecutionGoalLink> captor = ArgumentCaptor.forClass(ExecutionGoalLink.class);
         verify(executionGoalLinkRepository).save(captor.capture());
@@ -95,14 +94,13 @@ class ExecutionGoalLinkServiceTest {
     @Test
     void createLink_즉시태그_성공() {
         given(accountEtfHistoryRepository.findById(HISTORY_ID)).willReturn(Optional.of(history));
-        given(executionGoalLinkRepository.sumQtyByEtfHistoryId(HISTORY_ID)).willReturn(0);
         given(executionGoalLinkRepository.save(any(ExecutionGoalLink.class))).willAnswer(inv -> {
             ExecutionGoalLink l = inv.getArgument(0);
             ReflectionTestUtils.setField(l, "id", LINK_ID);
             return l;
         });
 
-        Long linkId = executionGoalLinkService.createLink(PARENT_ID, HISTORY_ID, CHILD_ID, GOAL_ID, QTY, "메모");
+        Long linkId = executionGoalLinkService.createLink(PARENT_ID, HISTORY_ID, CHILD_ID, GOAL_ID, "메모");
 
         ArgumentCaptor<ExecutionGoalLink> captor = ArgumentCaptor.forClass(ExecutionGoalLink.class);
         verify(executionGoalLinkRepository).save(captor.capture());
@@ -111,16 +109,6 @@ class ExecutionGoalLinkServiceTest {
         assertThat(saved.getChildId()).isEqualTo(CHILD_ID);
         assertThat(saved.getGoalId()).isEqualTo(GOAL_ID);
         assertThat(saved.getQty()).isEqualTo(QTY);
-    }
-
-    @Test
-    void createLink_수량초과_예외() {
-        given(accountEtfHistoryRepository.findById(HISTORY_ID)).willReturn(Optional.of(history));
-        given(executionGoalLinkRepository.sumQtyByEtfHistoryId(HISTORY_ID)).willReturn(QTY);
-
-        assertThatThrownBy(() ->
-            executionGoalLinkService.createLink(PARENT_ID, HISTORY_ID, null, null, 1, null))
-            .isInstanceOf(GeneralException.class);
     }
 
     // ── getUnlinked ──────────────────────────────────────────────

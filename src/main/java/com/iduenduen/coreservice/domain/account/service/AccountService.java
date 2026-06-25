@@ -108,7 +108,7 @@ public class AccountService {
         }
 
         return executionGoalLinkService.createLink(
-                req.parentId(), history.getId(), req.childId(), req.goalId(), req.qty(), req.memo());
+                req.parentId(), history.getId(), req.childId(), req.goalId(), req.memo());
     }
 
     public AccountHoldingsResponse getHoldings(Long accountId) {
