@@ -90,6 +90,9 @@ public class ExecutionGoalLinkService {
             int deduct = Math.min(link.getQty(), remaining);
             link.deductQty(deduct);
             remaining -= deduct;
+            if (link.getQty() == 0) {
+                executionGoalLinkRepository.delete(link);
+            }
         }
 
         if (remaining > 0) {

@@ -187,7 +187,7 @@ class ExecutionGoalLinkServiceTest {
 
         executionGoalLinkService.deductByFifo(CHILD_ID, GOAL_ID, 5);
 
-        assertThat(link1.getQty()).isEqualTo(0);
+        verify(executionGoalLinkRepository).delete(link1);
         assertThat(link2.getQty()).isEqualTo(6);
     }
 
