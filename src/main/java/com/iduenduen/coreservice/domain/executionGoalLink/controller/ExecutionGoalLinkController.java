@@ -5,7 +5,6 @@ import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalHoldingsResponse;
-import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.MoveRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.UnlinkedExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.service.ExecutionGoalLinkService;
@@ -32,21 +31,11 @@ public class ExecutionGoalLinkController {
             executionGoalLinkService.getUnlinked(parentId));
     }
 
-    @PutMapping("/{linkId}/link")
-    public ResponseEntity<ApiResponse<Void>> link(
-            @AuthenticationPrincipal Long parentId,
-            @PathVariable Long linkId,
-            @RequestBody @Valid LinkRequest req
-    ) {
-        executionGoalLinkService.link(parentId, linkId, req);
-        return ApiResponse.success(SuccessStatus.EXECUTION_LINK_SUCCESS);
-    }
-
     @PutMapping("/{linkId}/move")
     public ResponseEntity<ApiResponse<Void>> move(
             @AuthenticationPrincipal Long parentId,
             @PathVariable Long linkId,
-            @RequestBody MoveRequest req
+            @RequestBody @Valid MoveRequest req
     ) {
         executionGoalLinkService.moveLink(parentId, linkId, req);
         return ApiResponse.success(SuccessStatus.EXECUTION_LINK_SUCCESS);

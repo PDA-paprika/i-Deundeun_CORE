@@ -7,7 +7,6 @@ import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepo
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalHoldingsResponse;
-import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.MoveRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.UnlinkedExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.entity.ExecutionGoalLink;
@@ -87,12 +86,9 @@ public class ExecutionGoalLinkService {
             throw new GeneralException(ErrorStatus.FORBIDDEN);
         }
 
-        if (req.childId() != null) {
+        if (req.childId() != null && req.goalId() != null) {
             childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(req.childId(), parentId)
                     .orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
-        }
-
-        if (req.goalId() != null) {
             goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(req.goalId(), req.childId(), parentId)
                     .orElseThrow(() -> new GeneralException(ErrorStatus.GOAL_NOT_FOUND));
         }
@@ -132,28 +128,6 @@ public class ExecutionGoalLinkService {
         return links.stream()
             .map(link -> UnlinkedExecutionResponse.of(link, historyMap.get(link.getEtfHistoryId())))
             .toList();
-    }
-
-    @Transactional
-    public void link(Long parentId, Long linkId, LinkRequest req) {
-        ExecutionGoalLink link = executionGoalLinkRepository.findById(linkId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.EXECUTION_LINK_NOT_FOUND));
-
-        if (!link.getParentId().equals(parentId)) {
-            throw new GeneralException(ErrorStatus.FORBIDDEN);
-        }
-
-        if (link.getLinkedAt() != null) {
-            throw new GeneralException(ErrorStatus.EXECUTION_LINK_ALREADY_LINKED);
-        }
-
-        childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(req.childId(), parentId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
-
-        goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(req.goalId(), req.childId(), parentId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.GOAL_NOT_FOUND));
-
-        link.link(req.childId(), req.goalId(), req.memo());
     }
 
     @Transactional(readOnly = true)
