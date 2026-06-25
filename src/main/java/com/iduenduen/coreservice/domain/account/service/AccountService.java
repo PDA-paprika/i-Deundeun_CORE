@@ -101,8 +101,13 @@ public class AccountService {
                 .build();
         accountEtfHistoryRepository.save(history);
 
+        if (req.eventType() == EtfEventType.SELL) {
+            executionGoalLinkService.deductByFifo(req.childId(), req.goalId(), req.qty());
+            return null;
+        }
+
         return executionGoalLinkService.createLink(
-                req.parentId(), history.getId(), null, null, req.memo());
+                req.parentId(), history.getId(), null, null, req.qty(), req.memo());
     }
 
     public AccountHoldingsResponse getHoldings(Long accountId) {
