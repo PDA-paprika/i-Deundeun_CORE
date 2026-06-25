@@ -184,9 +184,9 @@ public class ParentService {
         // 7. user_agreements → hard delete
         userAgreementRepository.deleteAll(userAgreementRepository.findAllByParent_Id(parentId));
 
-        // 8. parent → soft delete
+        // 8. parent → hard delete
         Parent parent = findActiveParent(parentId);
-        parent.withdraw();
+        parentRepository.delete(parent);
     }
 
     @Transactional
