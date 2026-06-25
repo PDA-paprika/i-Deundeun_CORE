@@ -166,7 +166,7 @@ class AccountServiceTest {
     }
 
     @Test
-    void recordTrade_매도_태그없음_deductByFifo_미호출() {
+    void recordTrade_매도_부모소유_deductByFifo_null로_호출() {
         given(accountRepository.findById(ACCOUNT_ID)).willReturn(Optional.of(account));
         given(accountEtfHistoryRepository.save(any(AccountEtfHistory.class))).willAnswer(inv -> {
             AccountEtfHistory h = inv.getArgument(0);
@@ -182,6 +182,6 @@ class AccountServiceTest {
 
         accountService.recordTrade(req);
 
-        verifyNoInteractions(executionGoalLinkService);
+        verify(executionGoalLinkService).deductByFifo(null, null, 1);
     }
 }
