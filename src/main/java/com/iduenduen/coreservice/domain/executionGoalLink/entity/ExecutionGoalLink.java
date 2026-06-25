@@ -62,4 +62,9 @@ public class ExecutionGoalLink {
     public void deductQty(int amount) {
         this.qty -= amount;
     }
+
+    public void move(Long childId, Long goalId) {
+        this.childId = childId;
+        this.goalId = goalId;
+    }
 }

@@ -7,6 +7,7 @@ import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepo
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
+import com.iduenduen.coreservice.domain.executionGoalLink.dto.MoveRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.UnlinkedExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.entity.ExecutionGoalLink;
 import com.iduenduen.coreservice.domain.executionGoalLink.repository.ExecutionGoalLinkRepository;
@@ -47,6 +48,28 @@ public class ExecutionGoalLinkService {
         executionGoalLinkRepository.save(link);
         link.link(childId, goalId, memo);
         return link.getId();
+    }
+
+    @Transactional
+    public void moveLink(Long parentId, Long linkId, MoveRequest req) {
+        ExecutionGoalLink link = executionGoalLinkRepository.findById(linkId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.EXECUTION_LINK_NOT_FOUND));
+
+        if (!link.getParentId().equals(parentId)) {
+            throw new GeneralException(ErrorStatus.FORBIDDEN);
+        }
+
+        if (req.childId() != null) {
+            childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(req.childId(), parentId)
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+        }
+
+        if (req.goalId() != null) {
+            goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(req.goalId(), req.childId(), parentId)
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.GOAL_NOT_FOUND));
+        }
+
+        link.move(req.childId(), req.goalId());
     }
 
     @Transactional

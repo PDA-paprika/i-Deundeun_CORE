@@ -4,6 +4,7 @@ import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
+import com.iduenduen.coreservice.domain.executionGoalLink.dto.MoveRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.UnlinkedExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.service.ExecutionGoalLinkService;
 import jakarta.validation.Valid;
@@ -36,6 +37,16 @@ public class ExecutionGoalLinkController {
             @RequestBody @Valid LinkRequest req
     ) {
         executionGoalLinkService.link(parentId, linkId, req);
+        return ApiResponse.success(SuccessStatus.EXECUTION_LINK_SUCCESS);
+    }
+
+    @PutMapping("/{linkId}/move")
+    public ResponseEntity<ApiResponse<Void>> move(
+            @AuthenticationPrincipal Long parentId,
+            @PathVariable Long linkId,
+            @RequestBody MoveRequest req
+    ) {
+        executionGoalLinkService.moveLink(parentId, linkId, req);
         return ApiResponse.success(SuccessStatus.EXECUTION_LINK_SUCCESS);
     }
 
