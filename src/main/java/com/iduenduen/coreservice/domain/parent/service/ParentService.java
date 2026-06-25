@@ -164,13 +164,27 @@ public class ParentService {
         // 4. goals → hard delete
         goalRepository.deleteAll(goalRepository.findAllByParentId(parentId));
 
-        // 5. children → hard delete
+        // 5. children 계좌 및 관련 이력 → hard delete
+        childrenRepository.findAllByParentId(parentId).forEach(child ->
+            accountRepository.findByChildId(child.getId()).ifPresent(childAccount -> {
+                Long childAccountId = childAccount.getAccountId();
+                accountEtfHistoryRepository.deleteAll(
+                        accountEtfHistoryRepository.findByAccountIdOrderByOccurredAtDesc(childAccountId));
+                accountCashHistoryRepository.deleteAll(
+                        accountCashHistoryRepository.findByAccountIdOrderByOccurredAtDesc(childAccountId));
+                accountEtfHoldingRepository.deleteAll(
+                        accountEtfHoldingRepository.findByIdAccountId(childAccountId));
+                accountRepository.delete(childAccount);
+            })
+        );
+
+        // 6. children → hard delete
         childrenRepository.deleteAll(childrenRepository.findAllByParentId(parentId));
 
-        // 6. user_agreements → hard delete
+        // 7. user_agreements → hard delete
         userAgreementRepository.deleteAll(userAgreementRepository.findAllByParent_Id(parentId));
 
-        // 7. parent → soft delete
+        // 8. parent → soft delete
         Parent parent = findActiveParent(parentId);
         parent.withdraw();
     }
