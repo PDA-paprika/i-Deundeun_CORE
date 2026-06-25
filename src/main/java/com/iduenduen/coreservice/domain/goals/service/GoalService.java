@@ -53,7 +53,7 @@ public class GoalService {
             .childId(childId)
             .goalType1(request.goalType1())
             .goalType2(request.goalType2())
-            .goalType3(request.goalType3())
+            .goalType3(request.goalType3() != null ? request.goalType3() : 0)
             .name(request.name())
             .targetAmount(request.targetAmount())
             .targetDate(request.targetDate())

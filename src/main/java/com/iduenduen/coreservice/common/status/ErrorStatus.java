@@ -90,6 +90,7 @@ public enum ErrorStatus implements BaseStatus {
      * AssistantGoalNames
      */
     ASSISTANT_GOAL_NAME_INVALID_TYPE("ASSISTANT_400", HttpStatus.BAD_REQUEST, "유효하지 않은 goal_type1 코드입니다."),
+    ASSISTANT_GOAL_NAME_DUPLICATE("ASSISTANT_409", HttpStatus.CONFLICT, "이미 추가된 목표 주제입니다."),
 
     /**
      * Execution Goal Links

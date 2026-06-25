@@ -20,7 +20,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 @Service
 public class UploadService {
 
-    private static final int EXPIRES_IN_SECONDS = 300;
+    private static final int EXPIRES_IN_SECONDS = 1800;
     private static final Set<String> CERT_ALLOWED_TYPES = Set.of("application/pdf");
     private static final Set<String> PROFILE_ALLOWED_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
 
@@ -45,7 +45,6 @@ public class UploadService {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
-                .contentType(request.getContentType())
                 .build();
 
         PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(

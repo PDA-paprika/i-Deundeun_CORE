@@ -36,15 +36,27 @@ public class AssistantGoalNameService {
             .findFirst()
             .orElseThrow(() -> new GeneralException(ErrorStatus.ASSISTANT_GOAL_NAME_INVALID_TYPE));
 
+        Integer goalType3 = request.goalType3() != null ? request.goalType3() : 0;
+        if (assistantGoalNameRepository.existsByParentIdAndGoalType1AndGoalType2AndGoalType3AndDeletedAtIsNull(parentId, goalType1, request.goalType2(), goalType3)) {
+            throw new GeneralException(ErrorStatus.ASSISTANT_GOAL_NAME_DUPLICATE);
+        }
+
         AssistantGoalName entity = AssistantGoalName.builder()
             .parentId(parentId)
             .goalType1(goalType1)
             .goalType2(request.goalType2())
-            .goalType3(request.goalType3())
+            .goalType3(goalType3)
             .name(request.name())
             .build();
 
         return AssistantGoalNameCreateResponse.from(assistantGoalNameRepository.save(entity));
+    }
+
+    @Transactional
+    public void delete(Long parentId, Long id) {
+        AssistantGoalName entity = assistantGoalNameRepository.findByIdAndParentIdAndDeletedAtIsNull(id, parentId)
+            .orElseThrow(() -> new GeneralException(ErrorStatus.NOT_FOUND));
+        entity.softDelete();
     }
 
     @Transactional(readOnly = true)

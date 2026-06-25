@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +38,15 @@ public class AssistantGoalNameController {
         @AuthenticationPrincipal Long parentId) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200,
             assistantGoalNameService.getList(parentId));
+    }
+
+    @Operation(summary = "목표 도우미 데이터 삭제")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(
+        @AuthenticationPrincipal Long parentId,
+        @PathVariable Long id) {
+        assistantGoalNameService.delete(parentId, id);
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, null);
     }
 
     @Operation(summary = "목표 도우미 데이터 저장")
