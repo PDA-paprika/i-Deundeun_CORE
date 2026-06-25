@@ -112,6 +112,10 @@ public class GiftTransfer extends BaseEntity {
 		this.status = TransferStatus.CANCELLED;
 	}
 
+	public void reschedule(LocalDate newDate) {
+		this.scheduledDate = newDate;
+	}
+
 	public void skip() {
 		this.status = TransferStatus.SKIPPED;
 	}

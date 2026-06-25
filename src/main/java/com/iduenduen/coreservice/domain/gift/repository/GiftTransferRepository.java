@@ -24,6 +24,10 @@ public interface GiftTransferRepository extends JpaRepository<GiftTransfer, Long
 
 	boolean existsByGiftContractIdAndStatus(Long giftContractId, TransferStatus status);
 
+	List<GiftTransfer> findAllByGiftContractIdAndStatusOrderByScheduledDateAsc(Long giftContractId, TransferStatus status);
+
+	List<GiftTransfer> findAllByGiftContractIdAndScheduledDateAfterAndStatus(Long giftContractId, LocalDate date, TransferStatus status);
+
 	@Query("SELECT COALESCE(SUM(t.transferredCashAmt), 0) FROM GiftTransfer t " +
 		"JOIN GiftContract c ON t.giftContractId = c.id " +
 		"WHERE c.childId = :childId AND t.status = :status AND t.completedAt >= :since")
