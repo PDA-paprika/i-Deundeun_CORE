@@ -66,5 +66,6 @@ public class ExecutionGoalLink {
     public void move(Long childId, Long goalId) {
         this.childId = childId;
         this.goalId = goalId;
+        this.linkedAt = LocalDateTime.now();
     }
 }
