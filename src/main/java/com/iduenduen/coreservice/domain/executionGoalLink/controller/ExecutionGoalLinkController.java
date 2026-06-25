@@ -2,6 +2,7 @@ package com.iduenduen.coreservice.domain.executionGoalLink.controller;
 
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
+import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.MoveRequest;
@@ -50,11 +51,11 @@ public class ExecutionGoalLinkController {
         return ApiResponse.success(SuccessStatus.EXECUTION_LINK_SUCCESS);
     }
 
-    @GetMapping("/by-goal/{goalId}")
+    @PostMapping("/by-goal")
     public ResponseEntity<ApiResponse<List<GoalExecutionResponse>>> getByGoal(
-        @PathVariable Long goalId
+            @RequestBody @Valid GoalExecutionRequest req
     ) {
         return ApiResponse.success(SuccessStatus.EXECUTION_LINK_SUCCESS,
-            executionGoalLinkService.getByGoal(goalId));
+            executionGoalLinkService.getByGoal(req.goalId(), req.childId()));
     }
 }

@@ -126,9 +126,9 @@ public class ExecutionGoalLinkService {
     }
 
     @Transactional(readOnly = true)
-    public List<GoalExecutionResponse> getByGoal(Long goalId) {
+    public List<GoalExecutionResponse> getByGoal(Long goalId, Long childId) {
         List<ExecutionGoalLink> links =
-            executionGoalLinkRepository.findByParentIdAndLinkedAtIsNullOrderByCreatedAtAsc(goalId);
+            executionGoalLinkRepository.findByGoalIdAndChildIdOrderByCreatedAtDesc(goalId, childId);
 
         List<Long> historyIds = links.stream().map(ExecutionGoalLink::getEtfHistoryId).toList();
         Map<Long, AccountEtfHistory> historyMap = accountEtfHistoryRepository.findAllById(historyIds)
