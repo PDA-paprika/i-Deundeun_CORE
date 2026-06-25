@@ -93,7 +93,6 @@ public enum ErrorStatus implements BaseStatus {
      * Execution Goal Links
      */
     EXECUTION_LINK_NOT_FOUND("EXEC_404", HttpStatus.NOT_FOUND, "존재하지 않는 체결 링크입니다."),
-    EXECUTION_LINK_ALREADY_LINKED("EXEC_409", HttpStatus.CONFLICT, "이미 연결된 체결입니다."),
     EXECUTION_LINK_QTY_EXCEEDED("EXEC_400", HttpStatus.BAD_REQUEST, "태그 가능한 수량을 초과했습니다.");
 
     private final String code;
