@@ -45,6 +45,12 @@ public record EtfTradeNotificationRequest(
 
     String memo,
 
+    @JsonProperty("child_id")
+    Long childId,
+
+    @JsonProperty("goal_id")
+    Long goalId,
+
     @NotNull
     @JsonFormat(pattern = "yyyy.MM.dd HH:mm:ss")
     @JsonProperty("occurred_at")

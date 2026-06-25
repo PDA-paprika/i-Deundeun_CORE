@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -101,8 +102,13 @@ public class AccountService {
                 .build();
         accountEtfHistoryRepository.save(history);
 
+        if (req.eventType() == EtfEventType.SELL) {
+            executionGoalLinkService.deductByFifo(req.childId(), req.goalId(), req.qty());
+            return null;
+        }
+
         return executionGoalLinkService.createLink(
-                req.parentId(), history.getId(), null, null, req.memo());
+                req.parentId(), history.getId(), req.childId(), req.goalId(), req.memo());
     }
 
     public AccountHoldingsResponse getHoldings(Long accountId) {
@@ -131,12 +137,19 @@ public class AccountService {
 
         List<AccountEtfHolding> holdings = accountEtfHoldingRepository.findByIdAccountId(account.getAccountId());
 
+        Map<Long, Integer> taggedQtyMap = executionGoalLinkService.getTaggedQtyMapByEtfId(parentId);
+
         List<AccountHoldingsResponse.HoldingDto> holdingDtos = holdings.stream()
-                .map(h -> AccountHoldingsResponse.HoldingDto.builder()
-                        .etfId(h.getId().getEtfId())
-                        .qty(h.getQty())
-                        .avgBuyPrice(h.getAvgBuyPrice())
-                        .build())
+                .map(h -> {
+                    int tagged = taggedQtyMap.getOrDefault(h.getId().getEtfId(), 0);
+                    int unallocated = h.getQty() - tagged;
+                    return AccountHoldingsResponse.HoldingDto.builder()
+                            .etfId(h.getId().getEtfId())
+                            .qty(unallocated)
+                            .avgBuyPrice(h.getAvgBuyPrice())
+                            .build();
+                })
+                .filter(dto -> dto.getQty() > 0)
                 .toList();
 
         return AccountHoldingsResponse.builder()

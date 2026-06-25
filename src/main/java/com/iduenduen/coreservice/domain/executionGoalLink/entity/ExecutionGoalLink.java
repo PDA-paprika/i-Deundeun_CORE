@@ -31,6 +31,9 @@ public class ExecutionGoalLink {
     @Column(name = "etf_history_id", nullable = false)
     private Long etfHistoryId;
 
+    @Column(name = "qty", nullable = false)
+    private int qty;
+
     @Column(name = "memo", length = 100)
     private String memo;
 
@@ -42,16 +45,26 @@ public class ExecutionGoalLink {
     private LocalDateTime linkedAt;
 
     @Builder
-    public ExecutionGoalLink(Long parentId, Long etfHistoryId) {
+    public ExecutionGoalLink(Long parentId, Long etfHistoryId, int qty) {
         this.parentId = parentId;
         this.etfHistoryId = etfHistoryId;
+        this.qty = qty;
     }
 
     public void link(Long childId, Long goalId, String memo) {
-        if (childId == null || goalId == null) return;
+        this.memo = memo;
         this.childId = childId;
         this.goalId = goalId;
-        this.memo = memo;
+        this.linkedAt = LocalDateTime.now();
+    }
+
+    public void deductQty(int amount) {
+        this.qty -= amount;
+    }
+
+    public void move(Long childId, Long goalId) {
+        this.childId = childId;
+        this.goalId = goalId;
         this.linkedAt = LocalDateTime.now();
     }
 }

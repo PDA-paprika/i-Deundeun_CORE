@@ -7,6 +7,7 @@ CREATE TABLE `execution_goal_links`
     `goal_id`         BIGINT       NULL,
     `etf_history_id`  BIGINT       NOT NULL,
     `created_at`      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `qty`             INT          NOT NULL DEFAULT 0 COMMENT '태그된 ETF 수량',
     `linked_at`       TIMESTAMP    NULL     COMMENT '자녀·목표 연결 완료 시각'
 );
 

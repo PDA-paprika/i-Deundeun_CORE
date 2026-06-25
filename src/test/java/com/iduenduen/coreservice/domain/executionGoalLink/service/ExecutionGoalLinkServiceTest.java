@@ -4,9 +4,11 @@ import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHistory;
 import com.iduenduen.coreservice.domain.account.enums.EtfEventType;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
+import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.entity.ExecutionGoalLink;
 import com.iduenduen.coreservice.domain.executionGoalLink.repository.ExecutionGoalLinkRepository;
+import com.iduenduen.coreservice.domain.goals.repository.GoalRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +34,8 @@ class ExecutionGoalLinkServiceTest {
 
     @Mock private ExecutionGoalLinkRepository executionGoalLinkRepository;
     @Mock private AccountEtfHistoryRepository accountEtfHistoryRepository;
+    @Mock private ChildrenRepository childrenRepository;
+    @Mock private GoalRepository goalRepository;
 
     @InjectMocks
     private ExecutionGoalLinkService executionGoalLinkService;
@@ -41,6 +45,7 @@ class ExecutionGoalLinkServiceTest {
     private static final Long GOAL_ID = 3L;
     private static final Long HISTORY_ID = 10L;
     private static final Long LINK_ID = 100L;
+    private static final int QTY = 3;
 
     private ExecutionGoalLink unlinkedLink;
     private AccountEtfHistory history;
@@ -50,6 +55,7 @@ class ExecutionGoalLinkServiceTest {
         unlinkedLink = ExecutionGoalLink.builder()
             .parentId(PARENT_ID)
             .etfHistoryId(HISTORY_ID)
+            .qty(QTY)
             .build();
         ReflectionTestUtils.setField(unlinkedLink, "id", LINK_ID);
 
@@ -57,17 +63,18 @@ class ExecutionGoalLinkServiceTest {
             .accountId(1L)
             .eventType(EtfEventType.BUY)
             .etfId(1L)
-            .qtyDelta(3)
+            .qtyDelta(QTY)
             .price(50_000L)
             .occurredAt(LocalDateTime.now())
             .build();
         ReflectionTestUtils.setField(history, "id", HISTORY_ID);
     }
 
-    // ── createLink (매수 미연결) ──────────────────────────────────
+    // ── createLink ───────────────────────────────────────────────
 
     @Test
-    void createLink_매수_미연결_성공() {
+    void createLink_미태그_성공() {
+        given(accountEtfHistoryRepository.findById(HISTORY_ID)).willReturn(Optional.of(history));
         given(executionGoalLinkRepository.save(any(ExecutionGoalLink.class))).willAnswer(inv -> {
             ExecutionGoalLink l = inv.getArgument(0);
             ReflectionTestUtils.setField(l, "id", LINK_ID);
@@ -79,11 +86,14 @@ class ExecutionGoalLinkServiceTest {
         ArgumentCaptor<ExecutionGoalLink> captor = ArgumentCaptor.forClass(ExecutionGoalLink.class);
         verify(executionGoalLinkRepository).save(captor.capture());
         assertThat(linkId).isEqualTo(LINK_ID);
-        assertThat(captor.getValue().getLinkedAt()).isNull();
+        assertThat(captor.getValue().getChildId()).isNull();
+        assertThat(captor.getValue().getGoalId()).isNull();
+        assertThat(captor.getValue().getQty()).isEqualTo(QTY);
     }
 
     @Test
-    void createLink_매도_즉시연결_성공() {
+    void createLink_즉시태그_성공() {
+        given(accountEtfHistoryRepository.findById(HISTORY_ID)).willReturn(Optional.of(history));
         given(executionGoalLinkRepository.save(any(ExecutionGoalLink.class))).willAnswer(inv -> {
             ExecutionGoalLink l = inv.getArgument(0);
             ReflectionTestUtils.setField(l, "id", LINK_ID);
@@ -98,8 +108,7 @@ class ExecutionGoalLinkServiceTest {
         assertThat(linkId).isEqualTo(LINK_ID);
         assertThat(saved.getChildId()).isEqualTo(CHILD_ID);
         assertThat(saved.getGoalId()).isEqualTo(GOAL_ID);
-        assertThat(saved.getMemo()).isEqualTo("메모");
-        assertThat(saved.getLinkedAt()).isNotNull();
+        assertThat(saved.getQty()).isEqualTo(QTY);
     }
 
     // ── getUnlinked ──────────────────────────────────────────────
@@ -107,7 +116,7 @@ class ExecutionGoalLinkServiceTest {
     @Test
     void getUnlinked_미연결_목록_반환() {
         given(executionGoalLinkRepository
-            .findByParentIdAndLinkedAtIsNullOrderByCreatedAtDesc(PARENT_ID))
+            .findByParentIdAndChildIdIsNullAndGoalIdIsNullOrderByCreatedAtDesc(PARENT_ID))
             .willReturn(List.of(unlinkedLink));
         given(accountEtfHistoryRepository.findAllById(List.of(HISTORY_ID)))
             .willReturn(List.of(history));
@@ -122,7 +131,7 @@ class ExecutionGoalLinkServiceTest {
     @Test
     void getUnlinked_없으면_빈_리스트() {
         given(executionGoalLinkRepository
-            .findByParentIdAndLinkedAtIsNullOrderByCreatedAtDesc(PARENT_ID))
+            .findByParentIdAndChildIdIsNullAndGoalIdIsNullOrderByCreatedAtDesc(PARENT_ID))
             .willReturn(List.of());
         given(accountEtfHistoryRepository.findAllById(List.of()))
             .willReturn(List.of());
@@ -138,7 +147,7 @@ class ExecutionGoalLinkServiceTest {
     void link_성공() {
         given(executionGoalLinkRepository.findById(LINK_ID)).willReturn(Optional.of(unlinkedLink));
 
-        executionGoalLinkService.link(PARENT_ID, LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, "대학 등록금"));
+        executionGoalLinkService.link(PARENT_ID, LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, QTY, "대학 등록금"));
 
         assertThat(unlinkedLink.getChildId()).isEqualTo(CHILD_ID);
         assertThat(unlinkedLink.getGoalId()).isEqualTo(GOAL_ID);
@@ -150,7 +159,7 @@ class ExecutionGoalLinkServiceTest {
         given(executionGoalLinkRepository.findById(LINK_ID)).willReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-            executionGoalLinkService.link(PARENT_ID, LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, "메모")))
+            executionGoalLinkService.link(PARENT_ID, LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, QTY, "메모")))
             .isInstanceOf(GeneralException.class);
     }
 
@@ -160,36 +169,38 @@ class ExecutionGoalLinkServiceTest {
         given(executionGoalLinkRepository.findById(LINK_ID)).willReturn(Optional.of(unlinkedLink));
 
         assertThatThrownBy(() ->
-            executionGoalLinkService.link(PARENT_ID, LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, "새 메모")))
+            executionGoalLinkService.link(PARENT_ID, LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, QTY, "새 메모")))
             .isInstanceOf(GeneralException.class);
     }
 
-    // ── getByGoal ────────────────────────────────────────────────
+    // ── deductByFifo ─────────────────────────────────────────────
 
     @Test
-    void getByGoal_목표별_체결내역_반환() {
-        unlinkedLink.link(CHILD_ID, GOAL_ID, "메모");
-        given(executionGoalLinkRepository.findByGoalIdOrderByCreatedAtDesc(GOAL_ID))
-            .willReturn(List.of(unlinkedLink));
-        given(accountEtfHistoryRepository.findAllById(List.of(HISTORY_ID)))
-            .willReturn(List.of(history));
+    void deductByFifo_성공() {
+        ExecutionGoalLink link1 = ExecutionGoalLink.builder()
+            .parentId(PARENT_ID).etfHistoryId(HISTORY_ID).qty(1).build();
+        ExecutionGoalLink link2 = ExecutionGoalLink.builder()
+            .parentId(PARENT_ID).etfHistoryId(HISTORY_ID).qty(10).build();
 
-        var result = executionGoalLinkService.getByGoal(GOAL_ID);
+        given(executionGoalLinkRepository.findForFifoDeduction(CHILD_ID, GOAL_ID))
+            .willReturn(List.of(link1, link2));
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).childId()).isEqualTo(CHILD_ID);
-        assertThat(result.get(0).etfId()).isEqualTo(1L);
+        executionGoalLinkService.deductByFifo(CHILD_ID, GOAL_ID, 5);
+
+        verify(executionGoalLinkRepository).delete(link1);
+        assertThat(link2.getQty()).isEqualTo(6);
     }
 
     @Test
-    void getByGoal_없으면_빈_리스트() {
-        given(executionGoalLinkRepository.findByGoalIdOrderByCreatedAtDesc(GOAL_ID))
-            .willReturn(List.of());
-        given(accountEtfHistoryRepository.findAllById(List.of()))
-            .willReturn(List.of());
+    void deductByFifo_수량초과_예외() {
+        ExecutionGoalLink link = ExecutionGoalLink.builder()
+            .parentId(PARENT_ID).etfHistoryId(HISTORY_ID).qty(3).build();
 
-        var result = executionGoalLinkService.getByGoal(GOAL_ID);
+        given(executionGoalLinkRepository.findForFifoDeduction(CHILD_ID, GOAL_ID))
+            .willReturn(List.of(link));
 
-        assertThat(result).isEmpty();
+        assertThatThrownBy(() ->
+            executionGoalLinkService.deductByFifo(CHILD_ID, GOAL_ID, 5))
+            .isInstanceOf(GeneralException.class);
     }
 }

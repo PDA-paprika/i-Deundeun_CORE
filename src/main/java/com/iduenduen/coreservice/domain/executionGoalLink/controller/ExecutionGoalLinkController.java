@@ -2,8 +2,10 @@ package com.iduenduen.coreservice.domain.executionGoalLink.controller;
 
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
+import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
+import com.iduenduen.coreservice.domain.executionGoalLink.dto.MoveRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.UnlinkedExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.service.ExecutionGoalLinkService;
 import jakarta.validation.Valid;
@@ -39,11 +41,21 @@ public class ExecutionGoalLinkController {
         return ApiResponse.success(SuccessStatus.EXECUTION_LINK_SUCCESS);
     }
 
-    @GetMapping("/by-goal/{goalId}")
+    @PutMapping("/{linkId}/move")
+    public ResponseEntity<ApiResponse<Void>> move(
+            @AuthenticationPrincipal Long parentId,
+            @PathVariable Long linkId,
+            @RequestBody MoveRequest req
+    ) {
+        executionGoalLinkService.moveLink(parentId, linkId, req);
+        return ApiResponse.success(SuccessStatus.EXECUTION_LINK_SUCCESS);
+    }
+
+    @PostMapping("/by-goal")
     public ResponseEntity<ApiResponse<List<GoalExecutionResponse>>> getByGoal(
-        @PathVariable Long goalId
+            @RequestBody @Valid GoalExecutionRequest req
     ) {
         return ApiResponse.success(SuccessStatus.EXECUTION_LINK_SUCCESS,
-            executionGoalLinkService.getByGoal(goalId));
+            executionGoalLinkService.getByGoal(req.goalId(), req.childId()));
     }
 }

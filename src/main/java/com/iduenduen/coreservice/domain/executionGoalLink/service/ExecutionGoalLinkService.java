@@ -7,6 +7,7 @@ import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepo
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
+import com.iduenduen.coreservice.domain.executionGoalLink.dto.MoveRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.UnlinkedExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.entity.ExecutionGoalLink;
 import com.iduenduen.coreservice.domain.executionGoalLink.repository.ExecutionGoalLinkRepository;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,9 +33,13 @@ public class ExecutionGoalLinkService {
     @Transactional
     public Long createLink(Long parentId, Long etfHistoryId,
                            Long childId, Long goalId, String memo) {
+        AccountEtfHistory history = accountEtfHistoryRepository.findById(etfHistoryId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.EXECUTION_LINK_NOT_FOUND));
+
         ExecutionGoalLink link = ExecutionGoalLink.builder()
             .parentId(parentId)
             .etfHistoryId(etfHistoryId)
+            .qty(history.getQtyDelta())
             .build();
         executionGoalLinkRepository.save(link);
         link.link(childId, goalId, memo);
@@ -41,9 +47,63 @@ public class ExecutionGoalLinkService {
     }
 
     @Transactional(readOnly = true)
+    public Map<Long, Integer> getTaggedQtyMapByEtfId(Long parentId) {
+        List<Object[]> rows = executionGoalLinkRepository.sumTaggedQtyByEtfIdForParent(parentId);
+        Map<Long, Integer> result = new HashMap<>();
+        for (Object[] row : rows) {
+            Long etfId = (Long) row[0];
+            int qty = ((Number) row[1]).intValue();
+            result.put(etfId, qty);
+        }
+        return result;
+    }
+
+    @Transactional
+    public void moveLink(Long parentId, Long linkId, MoveRequest req) {
+        ExecutionGoalLink link = executionGoalLinkRepository.findById(linkId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.EXECUTION_LINK_NOT_FOUND));
+
+        if (!link.getParentId().equals(parentId)) {
+            throw new GeneralException(ErrorStatus.FORBIDDEN);
+        }
+
+        if (req.childId() != null) {
+            childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(req.childId(), parentId)
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+        }
+
+        if (req.goalId() != null) {
+            goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(req.goalId(), req.childId(), parentId)
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.GOAL_NOT_FOUND));
+        }
+
+        link.move(req.childId(), req.goalId());
+    }
+
+    @Transactional
+    public void deductByFifo(Long childId, Long goalId, int sellQty) {
+        List<ExecutionGoalLink> links = executionGoalLinkRepository.findForFifoDeduction(childId, goalId);
+
+        int remaining = sellQty;
+        for (ExecutionGoalLink link : links) {
+            if (remaining <= 0) break;
+            int deduct = Math.min(link.getQty(), remaining);
+            link.deductQty(deduct);
+            remaining -= deduct;
+            if (link.getQty() == 0) {
+                executionGoalLinkRepository.delete(link);
+            }
+        }
+
+        if (remaining > 0) {
+            throw new GeneralException(ErrorStatus.EXECUTION_LINK_QTY_EXCEEDED);
+        }
+    }
+
+    @Transactional(readOnly = true)
     public List<UnlinkedExecutionResponse> getUnlinked(Long parentId) {
         List<ExecutionGoalLink> links =
-            executionGoalLinkRepository.findByParentIdAndLinkedAtIsNullOrderByCreatedAtDesc(parentId);
+            executionGoalLinkRepository.findByParentIdAndChildIdIsNullAndGoalIdIsNullOrderByCreatedAtDesc(parentId);
 
         List<Long> historyIds = links.stream().map(ExecutionGoalLink::getEtfHistoryId).toList();
         Map<Long, AccountEtfHistory> historyMap = accountEtfHistoryRepository.findAllById(historyIds)
@@ -77,9 +137,9 @@ public class ExecutionGoalLinkService {
     }
 
     @Transactional(readOnly = true)
-    public List<GoalExecutionResponse> getByGoal(Long goalId) {
+    public List<GoalExecutionResponse> getByGoal(Long goalId, Long childId) {
         List<ExecutionGoalLink> links =
-            executionGoalLinkRepository.findByParentIdAndLinkedAtIsNullOrderByCreatedAtAsc(goalId);
+            executionGoalLinkRepository.findByGoalIdAndChildIdOrderByCreatedAtDesc(goalId, childId);
 
         List<Long> historyIds = links.stream().map(ExecutionGoalLink::getEtfHistoryId).toList();
         Map<Long, AccountEtfHistory> historyMap = accountEtfHistoryRepository.findAllById(historyIds)
