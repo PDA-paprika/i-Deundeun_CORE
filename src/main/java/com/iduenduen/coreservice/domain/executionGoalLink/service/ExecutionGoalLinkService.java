@@ -6,6 +6,7 @@ import com.iduenduen.coreservice.domain.account.entity.AccountEtfHistory;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
+import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalHoldingsResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.MoveRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.UnlinkedExecutionResponse;
@@ -47,11 +48,30 @@ public class ExecutionGoalLinkService {
     }
 
     @Transactional(readOnly = true)
+    public GoalHoldingsResponse getGoalHoldings(Long goalId, Long childId) {
+        List<Object[]> rows = executionGoalLinkRepository.sumQtyByGoalAndChild(goalId, childId);
+
+        List<GoalHoldingsResponse.HoldingDto> holdings = rows.stream()
+                .map(row -> GoalHoldingsResponse.HoldingDto.builder()
+                        .etfId(((Number) row[0]).longValue())
+                        .etfName((String) row[1])
+                        .qty(((Number) row[2]).intValue())
+                        .build())
+                .toList();
+
+        return GoalHoldingsResponse.builder()
+                .goalId(goalId)
+                .childId(childId)
+                .holdings(holdings)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
     public Map<Long, Integer> getTaggedQtyMapByEtfId(Long parentId) {
         List<Object[]> rows = executionGoalLinkRepository.sumTaggedQtyByEtfIdForParent(parentId);
         Map<Long, Integer> result = new HashMap<>();
         for (Object[] row : rows) {
-            Long etfId = (Long) row[0];
+            Long etfId = ((Number) row[0]).longValue();
             int qty = ((Number) row[1]).intValue();
             result.put(etfId, qty);
         }
