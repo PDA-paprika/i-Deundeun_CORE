@@ -252,6 +252,7 @@ public class ParentService {
 
     private List<Integer> fetchDistribution(Integer g1, Integer g2, Integer g3,
                                              Integer residenceRegion, Integer economicActivity, Integer income) {
+        if (income == null || economicActivity == null) return List.of();
         if (g1 == 1 && (g2 == 2 || g2 == 3)) {
             return jdbcTemplate.queryForList("""
                     SELECT total_amount FROM elementary_middle_education_stat

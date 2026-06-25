@@ -13,5 +13,8 @@ public record LinkRequest(
     @JsonProperty("goal_id")
     Long goalId,
 
+    @NotNull
+    int qty,
+
     String memo
 ) {}

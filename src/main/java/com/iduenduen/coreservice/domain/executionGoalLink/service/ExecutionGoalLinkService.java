@@ -30,14 +30,40 @@ public class ExecutionGoalLinkService {
 
     @Transactional
     public Long createLink(Long parentId, Long etfHistoryId,
-                           Long childId, Long goalId, String memo) {
+                           Long childId, Long goalId, int qty, String memo) {
+        AccountEtfHistory history = accountEtfHistoryRepository.findById(etfHistoryId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.EXECUTION_LINK_NOT_FOUND));
+
+        int usedQty = executionGoalLinkRepository.sumQtyByEtfHistoryId(etfHistoryId);
+        if (usedQty + qty > history.getQtyDelta()) {
+            throw new GeneralException(ErrorStatus.EXECUTION_LINK_QTY_EXCEEDED);
+        }
+
         ExecutionGoalLink link = ExecutionGoalLink.builder()
             .parentId(parentId)
             .etfHistoryId(etfHistoryId)
+            .qty(qty)
             .build();
         executionGoalLinkRepository.save(link);
         link.link(childId, goalId, memo);
         return link.getId();
+    }
+
+    @Transactional
+    public void deductByFifo(Long childId, Long goalId, int sellQty) {
+        List<ExecutionGoalLink> links = executionGoalLinkRepository.findForFifoDeduction(childId, goalId);
+
+        int remaining = sellQty;
+        for (ExecutionGoalLink link : links) {
+            if (remaining <= 0) break;
+            int deduct = Math.min(link.getQty(), remaining);
+            link.deductQty(deduct);
+            remaining -= deduct;
+        }
+
+        if (remaining > 0) {
+            throw new GeneralException(ErrorStatus.EXECUTION_LINK_QTY_EXCEEDED);
+        }
     }
 
     @Transactional(readOnly = true)

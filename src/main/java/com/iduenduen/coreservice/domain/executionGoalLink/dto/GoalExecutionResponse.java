@@ -21,6 +21,8 @@ public record GoalExecutionResponse(
     @JsonProperty("qty_delta")
     int qtyDelta,
 
+    int qty,
+
     long price,
 
     @JsonProperty("child_id")
@@ -42,6 +44,7 @@ public record GoalExecutionResponse(
             history.getEventType(),
             history.getEtfId(),
             history.getQtyDelta(),
+            link.getQty(),
             history.getPrice(),
             link.getChildId(),
             link.getMemo(),
