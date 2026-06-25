@@ -244,6 +244,10 @@ public class ParentService {
         List<Integer> distribution = fetchDistribution(
                 request.getGoalType1(), request.getGoalType2(), request.getGoalType3(),
                 residenceRegion, parent.getParentEconomicActivity(), parent.getMonthlyHouseholdIncome());
+        log.info("[Parent] 국가통계 distribution 건수 - count={}, region={}, residenceRegion={}, economicActivity={}, income={}, g1={}, g2={}, g3={}",
+                distribution.size(), parent.getRegion(), residenceRegion,
+                parent.getParentEconomicActivity(), parent.getMonthlyHouseholdIncome(),
+                request.getGoalType1(), request.getGoalType2(), request.getGoalType3());
 
         StatsKorRequest requestWithDist = StatsKorRequest.builder()
                 .goalType1(request.getGoalType1())
@@ -306,20 +310,39 @@ public class ParentService {
 
         Parent parent = findActiveParent(parentId);
 
-        List<Integer> distribution = jdbcTemplate.queryForList("""
-                SELECT go.target_amount
-                FROM goals go
-                JOIN parents p ON go.parent_id = p.id
-                WHERE p.cluster_value = ?
-                  AND go.goal_type1   = ?
-                  AND go.goal_type2   = ?
-                  AND go.goal_type3   <=> ?
-                  AND go.parent_id   != ?
-                  AND go.deleted_at   IS NULL
-                """,
-                Integer.class,
-                parent.getClusterValue(), request.getGoalType1(), request.getGoalType2(),
-                request.getGoalType3(), parentId);
+        boolean hasDetail = request.getGoalType3() != null && request.getGoalType3() != 0;
+        List<Integer> distribution = hasDetail
+                ? jdbcTemplate.queryForList("""
+                        SELECT go.target_amount
+                        FROM goals go
+                        JOIN parents p ON go.parent_id = p.id
+                        WHERE p.cluster_value = ?
+                          AND go.goal_type1   = ?
+                          AND go.goal_type2   = ?
+                          AND go.goal_type3   = ?
+                          AND go.parent_id   != ?
+                          AND go.deleted_at   IS NULL
+                        """,
+                        Integer.class,
+                        parent.getClusterValue(), request.getGoalType1(), request.getGoalType2(),
+                        request.getGoalType3(), parentId)
+                : jdbcTemplate.queryForList("""
+                        SELECT go.target_amount
+                        FROM goals go
+                        JOIN parents p ON go.parent_id = p.id
+                        WHERE p.cluster_value = ?
+                          AND go.goal_type1   = ?
+                          AND go.goal_type2   = ?
+                          AND go.parent_id   != ?
+                          AND go.deleted_at   IS NULL
+                        """,
+                        Integer.class,
+                        parent.getClusterValue(), request.getGoalType1(), request.getGoalType2(), parentId);
+
+        log.info("[Parent] 개인통계 distribution 건수 - parentId={}, clusterValue={}, goalType1={}, goalType2={}, goalType3={}, count={}", parentId, parent.getClusterValue(), request.getGoalType1(), request.getGoalType2(), request.getGoalType3(), distribution.size());
+        if (distribution.isEmpty()) {
+            return null;
+        }
 
         StatsPersonalRequest requestWithDist = StatsPersonalRequest.builder()
                 .goalType1(request.getGoalType1())

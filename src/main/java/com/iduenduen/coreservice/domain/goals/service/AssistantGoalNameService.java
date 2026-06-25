@@ -40,7 +40,7 @@ public class AssistantGoalNameService {
             .parentId(parentId)
             .goalType1(goalType1)
             .goalType2(request.goalType2())
-            .goalType3(request.goalType3())
+            .goalType3(request.goalType3() != null ? request.goalType3() : 0)
             .name(request.name())
             .build();
 
