@@ -22,9 +22,12 @@ public record GiftTransferHistoryResponse(List<TransferHistoryItem> transfers) {
             TransferStatus status,
             @JsonProperty("transferred_cash_amt") long transferredCashAmt,
             @JsonProperty("transferred_etf_qty") int transferredEtfQty,
+            @JsonProperty("estimated_gift_amount") Long estimatedGiftAmount,
+            @JsonProperty("final_gift_amount") Long finalGiftAmount,
             @JsonProperty("completed_at") LocalDateTime completedAt
     ) {
         public static TransferHistoryItem of(GiftTransfer transfer, GiftContract contract) {
+            boolean isEtf = contract.getGiftType() == GiftType.ETF;
             return new TransferHistoryItem(
                     transfer.getId(),
                     contract.getId(),
@@ -35,6 +38,8 @@ public record GiftTransferHistoryResponse(List<TransferHistoryItem> transfers) {
                     transfer.getStatus(),
                     transfer.getTransferredCashAmt(),
                     transfer.getTransferredEtfQty(),
+                    isEtf ? contract.getEstimatedGiftAmount() : null,
+                    isEtf ? contract.getFinalGiftAmount() : null,
                     transfer.getCompletedAt()
             );
         }
