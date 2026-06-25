@@ -127,6 +127,14 @@ public class GiftContract extends BaseEntity {
 		this.finalGiftAmount = finalGiftAmount;
 	}
 
+	public void updateTransferDay(int transferDay) {
+		this.transferDay = transferDay;
+	}
+
+	public void updateEndDate(LocalDate endDate) {
+		this.endDate = endDate;
+	}
+
 	public void activate() {
 		this.status = ContractStatus.ACTIVE;
 	}

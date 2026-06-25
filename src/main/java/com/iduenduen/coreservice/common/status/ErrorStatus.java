@@ -50,6 +50,8 @@ public enum ErrorStatus implements BaseStatus {
     INSUFFICIENT_ETF_QTY("GIFT_400_02", HttpStatus.BAD_REQUEST, "보유 ETF 수량이 부족합니다."),
     GIFT_CONTRACT_NOT_FOUND("GIFT_404", HttpStatus.NOT_FOUND, "존재하지 않는 증여 계약입니다."),
     GIFT_CONTRACT_NOT_CANCELLABLE("GIFT_400_04", HttpStatus.BAD_REQUEST, "취소할 수 없는 증여 계약입니다."),
+    GIFT_CONTRACT_NOT_MODIFIABLE("GIFT_400_05", HttpStatus.BAD_REQUEST, "유기정기금 ACTIVE 상태의 계약만 수정 가능합니다."),
+    GIFT_CONTRACT_INVALID_END_MONTH("GIFT_400_06", HttpStatus.BAD_REQUEST, "이미 완료된 이체 이전 날짜로 단축할 수 없습니다."),
 
 
     /**
