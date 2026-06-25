@@ -434,9 +434,13 @@ public class GiftService {
 		List<GiftTransfer> transfers, GiftContractCreateRequest request) {
 		switch (contract.getGiftType()) {
 			case ONE_TIME -> {
-				fromAccount.deductCash(contract.getCashAmount());
-				transfers.get(0).complete(contract.getCashAmount(), 0);
-				contract.complete();
+				if (!transfers.get(0).getScheduledDate().isAfter(LocalDate.now())) {
+					fromAccount.deductCash(contract.getCashAmount());
+					transfers.get(0).complete(contract.getCashAmount(), 0);
+					contract.complete();
+				} else {
+					contract.activate();
+				}
 			}
 			case ETF -> {
 				AccountEtfHoldingId holdingId = new AccountEtfHoldingId(
