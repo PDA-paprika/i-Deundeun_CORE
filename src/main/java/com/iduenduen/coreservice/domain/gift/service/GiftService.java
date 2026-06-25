@@ -304,9 +304,15 @@ public class GiftService {
 	private long calculateRemainingTaxFreeLimit(Long childId, int age) {
 		long limit = age < 19 ? 20_000_000L : 50_000_000L;
 		LocalDateTime tenYearsAgo = LocalDate.now().minusYears(10).atStartOfDay();
-		long used = giftTransferRepository.sumTransferredCashAmtByChildIdAndStatusAndCompletedAtAfter(
+		long cashUsed = giftTransferRepository.sumTransferredCashAmtByChildIdAndStatusAndCompletedAtAfter(
 			childId, com.iduenduen.coreservice.domain.gift.enums.TransferStatus.COMPLETED, tenYearsAgo);
-		return Math.max(0L, limit - used);
+		long etfUsed = giftContractRepository.findAllByChildIdAndCancelledAtIsNull(childId).stream()
+			.filter(c -> c.getGiftType() == com.iduenduen.coreservice.domain.gift.enums.GiftType.ETF)
+			.filter(c -> c.getStartDate().atStartOfDay().isAfter(tenYearsAgo))
+			.filter(c -> c.getFinalGiftAmount() != null || c.getEstimatedGiftAmount() != null)
+			.mapToLong(c -> c.getFinalGiftAmount() != null ? c.getFinalGiftAmount() : c.getEstimatedGiftAmount())
+			.sum();
+		return Math.max(0L, limit - cashUsed - etfUsed);
 	}
 
 	// preview와 등록에서 공통으로 사용하는 계산 로직
