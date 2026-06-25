@@ -11,4 +11,6 @@ public interface AssistantGoalNameRepository extends JpaRepository<AssistantGoal
     List<AssistantGoalName> findByParentIdAndDeletedAtIsNull(Long parentId);
 
     java.util.Optional<AssistantGoalName> findByIdAndParentIdAndDeletedAtIsNull(Long id, Long parentId);
+
+    boolean existsByParentIdAndGoalType1AndGoalType2AndGoalType3AndDeletedAtIsNull(Long parentId, com.iduenduen.coreservice.domain.goals.enums.GoalType goalType1, Integer goalType2, Integer goalType3);
 }
