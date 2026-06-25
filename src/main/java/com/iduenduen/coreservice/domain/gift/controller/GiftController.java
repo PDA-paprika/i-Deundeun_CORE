@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateRequest;
+import com.iduenduen.coreservice.domain.gift.dto.GiftEndMonthUpdateRequest;
+import com.iduenduen.coreservice.domain.gift.dto.GiftTransferDayUpdateRequest;
 import com.iduenduen.coreservice.domain.gift.dto.GiftTitleUpdateRequest;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractCreateResponse;
 import com.iduenduen.coreservice.domain.gift.dto.GiftContractDetailResponse;
@@ -94,6 +96,26 @@ public class GiftController {
 		@RequestBody @Valid GiftTitleUpdateRequest request) {
 		giftService.updateContractTitle(parentId, contractId, request.getTitle());
 		return ApiResponse.success(SuccessStatus.GIFT_CONTRACT_TITLE_UPDATE_SUCCESS, null);
+	}
+
+	@Operation(summary = "증여 계약 이체 날짜 변경", description = "유기정기금 증여 계약의 매월 이체 날짜를 변경합니다. 다음 달 이체부터 적용됩니다.")
+	@PatchMapping("/contracts/{contractId}/transfer-day")
+	public ResponseEntity<ApiResponse<Void>> updateTransferDay(
+		@AuthenticationPrincipal Long parentId,
+		@PathVariable Long contractId,
+		@RequestBody @Valid GiftTransferDayUpdateRequest request) {
+		giftService.updateTransferDay(parentId, contractId, request.transferDay());
+		return ApiResponse.success(SuccessStatus.GIFT_CONTRACT_TRANSFER_DAY_UPDATE_SUCCESS, null);
+	}
+
+	@Operation(summary = "증여 계약 종료 기간 변경", description = "유기정기금 증여 계약의 종료 기간을 연장하거나 단축합니다.")
+	@PatchMapping("/contracts/{contractId}/end-month")
+	public ResponseEntity<ApiResponse<Void>> updateEndMonth(
+		@AuthenticationPrincipal Long parentId,
+		@PathVariable Long contractId,
+		@RequestBody @Valid GiftEndMonthUpdateRequest request) {
+		giftService.updateEndMonth(parentId, contractId, request.endMonth());
+		return ApiResponse.success(SuccessStatus.GIFT_CONTRACT_END_MONTH_UPDATE_SUCCESS, null);
 	}
 
 	@Operation(summary = "증여 계약 취소", description = "증여 계약을 취소합니다. DRAFT 또는 ACTIVE 상태만 취소 가능합니다.")
