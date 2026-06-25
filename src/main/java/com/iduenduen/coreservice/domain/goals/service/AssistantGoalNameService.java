@@ -47,6 +47,13 @@ public class AssistantGoalNameService {
         return AssistantGoalNameCreateResponse.from(assistantGoalNameRepository.save(entity));
     }
 
+    @Transactional
+    public void delete(Long parentId, Long id) {
+        AssistantGoalName entity = assistantGoalNameRepository.findByIdAndParentIdAndDeletedAtIsNull(id, parentId)
+            .orElseThrow(() -> new GeneralException(ErrorStatus.NOT_FOUND));
+        entity.softDelete();
+    }
+
     @Transactional(readOnly = true)
     public List<AssistantGoalNameGetResponse> getList(Long parentId) {
         return assistantGoalNameRepository.findByParentIdAndDeletedAtIsNull(parentId)
