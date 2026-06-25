@@ -165,6 +165,99 @@ public class GiftService {
 		contract.cancel();
 	}
 
+	// 이체 날짜 변경 (다음 달 이체부터 적용)
+	@Transactional
+	public void updateTransferDay(Long parentId, Long contractId, int transferDay) {
+		GiftContract contract = giftContractRepository.findByIdAndParentId(contractId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.GIFT_CONTRACT_NOT_FOUND));
+
+		if (contract.getGiftType() != com.iduenduen.coreservice.domain.gift.enums.GiftType.INSTALLMENT
+			|| contract.getStatus() != com.iduenduen.coreservice.domain.gift.enums.ContractStatus.ACTIVE) {
+			throw new GeneralException(ErrorStatus.GIFT_CONTRACT_NOT_MODIFIABLE);
+		}
+
+		YearMonth nextMonth = YearMonth.now().plusMonths(1);
+
+		List<GiftTransfer> pendingTransfers = giftTransferRepository
+			.findAllByGiftContractIdAndStatusOrderByScheduledDateAsc(
+				contractId, com.iduenduen.coreservice.domain.gift.enums.TransferStatus.SCHEDULED);
+
+		pendingTransfers.stream()
+			.filter(t -> YearMonth.from(t.getScheduledDate()).isAfter(YearMonth.now()))
+			.forEach(t -> {
+				YearMonth month = YearMonth.from(t.getScheduledDate());
+				int day = Math.min(transferDay, month.lengthOfMonth());
+				t.reschedule(month.atDay(day));
+			});
+
+		contract.updateTransferDay(transferDay);
+	}
+
+	// 종료 기간 변경
+	@Transactional
+	public void updateEndMonth(Long parentId, Long contractId, YearMonth newEndMonth) {
+		GiftContract contract = giftContractRepository.findByIdAndParentId(contractId, parentId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.GIFT_CONTRACT_NOT_FOUND));
+
+		if (contract.getGiftType() != com.iduenduen.coreservice.domain.gift.enums.GiftType.INSTALLMENT
+			|| contract.getStatus() != com.iduenduen.coreservice.domain.gift.enums.ContractStatus.ACTIVE) {
+			throw new GeneralException(ErrorStatus.GIFT_CONTRACT_NOT_MODIFIABLE);
+		}
+
+		YearMonth currentEndMonth = YearMonth.from(contract.getEndDate());
+
+		if (newEndMonth.isBefore(currentEndMonth)) {
+			// 단축: 새 종료월 이후 PENDING 이체 취소
+			LocalDate newEndDate = newEndMonth.atEndOfMonth();
+
+			// 이미 완료된 이체가 새 종료월 이후면 단축 불가
+			boolean hasCompletedAfter = giftTransferRepository
+				.findAllByGiftContractIdOrderBySequenceNoAsc(contractId).stream()
+				.filter(t -> t.getStatus() == com.iduenduen.coreservice.domain.gift.enums.TransferStatus.COMPLETED)
+				.anyMatch(t -> t.getScheduledDate().isAfter(newEndDate));
+			if (hasCompletedAfter) {
+				throw new GeneralException(ErrorStatus.GIFT_CONTRACT_INVALID_END_MONTH);
+			}
+
+			giftTransferRepository
+				.findAllByGiftContractIdAndScheduledDateAfterAndStatus(
+					contractId, newEndDate, com.iduenduen.coreservice.domain.gift.enums.TransferStatus.SCHEDULED)
+				.forEach(GiftTransfer::cancel);
+
+			contract.updateEndDate(newEndDate);
+
+			boolean hasPending = giftTransferRepository
+				.existsByGiftContractIdAndStatus(contractId, com.iduenduen.coreservice.domain.gift.enums.TransferStatus.SCHEDULED);
+			if (!hasPending) {
+				contract.complete();
+			}
+
+		} else {
+			// 연장: 기존 종료월+1 ~ 새 종료월까지 이체 추가
+			List<GiftTransfer> existing = giftTransferRepository
+				.findAllByGiftContractIdOrderBySequenceNoAsc(contractId);
+			int lastSeqNo = existing.stream().mapToInt(GiftTransfer::getSequenceNo).max().orElse(0);
+
+			YearMonth from = currentEndMonth.plusMonths(1);
+			List<GiftTransfer> newTransfers = IntStream.iterate(0, i -> i + 1)
+				.limit(from.until(newEndMonth, ChronoUnit.MONTHS) + 1)
+				.mapToObj(i -> {
+					YearMonth month = from.plusMonths(i);
+					int day = Math.min(contract.getTransferDay(), month.lengthOfMonth());
+					return GiftTransfer.builder()
+						.giftContractId(contractId)
+						.sequenceNo(lastSeqNo + i + 1)
+						.scheduledDate(month.atDay(day))
+						.requiredCashAmt(contract.getCashAmount())
+						.build();
+				})
+				.toList();
+
+			giftTransferRepository.saveAll(newTransfers);
+			contract.updateEndDate(newEndMonth.atEndOfMonth());
+		}
+	}
+
 	// 증여 계약 상세 조회
 	@Transactional
 	public GiftContractDetailResponse getGiftContractDetail(Long parentId, Long contractId) {
