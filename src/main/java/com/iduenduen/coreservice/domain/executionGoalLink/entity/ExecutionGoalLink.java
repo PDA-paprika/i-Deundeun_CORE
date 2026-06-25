@@ -53,7 +53,6 @@ public class ExecutionGoalLink {
 
     public void link(Long childId, Long goalId, String memo) {
         this.memo = memo;
-        if (childId == null || goalId == null) return;
         this.childId = childId;
         this.goalId = goalId;
         this.linkedAt = LocalDateTime.now();

@@ -116,7 +116,7 @@ class ExecutionGoalLinkServiceTest {
     @Test
     void getUnlinked_미연결_목록_반환() {
         given(executionGoalLinkRepository
-            .findByParentIdAndLinkedAtIsNullOrderByCreatedAtDesc(PARENT_ID))
+            .findByParentIdAndChildIdIsNullAndGoalIdIsNullOrderByCreatedAtDesc(PARENT_ID))
             .willReturn(List.of(unlinkedLink));
         given(accountEtfHistoryRepository.findAllById(List.of(HISTORY_ID)))
             .willReturn(List.of(history));
@@ -131,7 +131,7 @@ class ExecutionGoalLinkServiceTest {
     @Test
     void getUnlinked_없으면_빈_리스트() {
         given(executionGoalLinkRepository
-            .findByParentIdAndLinkedAtIsNullOrderByCreatedAtDesc(PARENT_ID))
+            .findByParentIdAndChildIdIsNullAndGoalIdIsNullOrderByCreatedAtDesc(PARENT_ID))
             .willReturn(List.of());
         given(accountEtfHistoryRepository.findAllById(List.of()))
             .willReturn(List.of());

@@ -103,7 +103,7 @@ public class ExecutionGoalLinkService {
     @Transactional(readOnly = true)
     public List<UnlinkedExecutionResponse> getUnlinked(Long parentId) {
         List<ExecutionGoalLink> links =
-            executionGoalLinkRepository.findByParentIdAndLinkedAtIsNullOrderByCreatedAtDesc(parentId);
+            executionGoalLinkRepository.findByParentIdAndChildIdIsNullAndGoalIdIsNullOrderByCreatedAtDesc(parentId);
 
         List<Long> historyIds = links.stream().map(ExecutionGoalLink::getEtfHistoryId).toList();
         Map<Long, AccountEtfHistory> historyMap = accountEtfHistoryRepository.findAllById(historyIds)

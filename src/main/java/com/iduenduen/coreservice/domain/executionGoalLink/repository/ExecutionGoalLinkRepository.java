@@ -8,9 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface ExecutionGoalLinkRepository extends JpaRepository<ExecutionGoalLink, Long> {
-    List<ExecutionGoalLink> findByParentIdAndLinkedAtIsNullOrderByCreatedAtDesc(Long parentId);
-
-    List<ExecutionGoalLink> findByParentIdAndLinkedAtIsNullOrderByCreatedAtAsc(Long parentId);
+    List<ExecutionGoalLink> findByParentIdAndChildIdIsNullAndGoalIdIsNullOrderByCreatedAtDesc(Long parentId);
 
     List<ExecutionGoalLink> findAllByParentId(Long parentId);
 
