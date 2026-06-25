@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -136,12 +137,19 @@ public class AccountService {
 
         List<AccountEtfHolding> holdings = accountEtfHoldingRepository.findByIdAccountId(account.getAccountId());
 
+        Map<Long, Integer> taggedQtyMap = executionGoalLinkService.getTaggedQtyMapByEtfId(parentId);
+
         List<AccountHoldingsResponse.HoldingDto> holdingDtos = holdings.stream()
-                .map(h -> AccountHoldingsResponse.HoldingDto.builder()
-                        .etfId(h.getId().getEtfId())
-                        .qty(h.getQty())
-                        .avgBuyPrice(h.getAvgBuyPrice())
-                        .build())
+                .map(h -> {
+                    int tagged = taggedQtyMap.getOrDefault(h.getId().getEtfId(), 0);
+                    int unallocated = h.getQty() - tagged;
+                    return AccountHoldingsResponse.HoldingDto.builder()
+                            .etfId(h.getId().getEtfId())
+                            .qty(unallocated)
+                            .avgBuyPrice(h.getAvgBuyPrice())
+                            .build();
+                })
+                .filter(dto -> dto.qty() > 0)
                 .toList();
 
         return AccountHoldingsResponse.builder()

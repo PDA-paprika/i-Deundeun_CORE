@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,6 +49,18 @@ public class ExecutionGoalLinkService {
         executionGoalLinkRepository.save(link);
         link.link(childId, goalId, memo);
         return link.getId();
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, Integer> getTaggedQtyMapByEtfId(Long parentId) {
+        List<Object[]> rows = executionGoalLinkRepository.sumTaggedQtyByEtfIdForParent(parentId);
+        Map<Long, Integer> result = new HashMap<>();
+        for (Object[] row : rows) {
+            Long etfId = (Long) row[0];
+            int qty = ((Number) row[1]).intValue();
+            result.put(etfId, qty);
+        }
+        return result;
     }
 
     @Transactional
