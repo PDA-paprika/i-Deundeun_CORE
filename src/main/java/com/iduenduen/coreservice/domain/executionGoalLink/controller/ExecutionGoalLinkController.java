@@ -2,6 +2,7 @@ package com.iduenduen.coreservice.domain.executionGoalLink.controller;
 
 import com.iduenduen.coreservice.common.response.ApiResponse;
 import com.iduenduen.coreservice.common.status.SuccessStatus;
+import com.iduenduen.coreservice.domain.executionGoalLink.dto.AllExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalHoldingsResponse;
@@ -22,6 +23,14 @@ import java.util.List;
 public class ExecutionGoalLinkController {
 
     private final ExecutionGoalLinkService executionGoalLinkService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<AllExecutionResponse>>> getAll(
+            @AuthenticationPrincipal Long parentId
+    ) {
+        return ApiResponse.success(SuccessStatus.EXECUTION_LINK_SUCCESS,
+            executionGoalLinkService.getAll(parentId));
+    }
 
     @GetMapping("/unlinked")
     public ResponseEntity<ApiResponse<List<UnlinkedExecutionResponse>>> getUnlinked(
