@@ -418,6 +418,7 @@ public class ParentService {
                     .map(p -> ParentFrequencyResponse.builder()
                             .goalType1(p.getGoalType1())
                             .goalType2(p.getGoalType2())
+                            .goalType3(p.getGoalType3())
                             .count(p.getCount())
                             .build())
                     .collect(Collectors.toList());
