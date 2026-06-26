@@ -5,6 +5,7 @@ import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHistory;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
+import com.iduenduen.coreservice.domain.executionGoalLink.dto.AllExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalExecutionResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.GoalHoldingsResponse;
 import com.iduenduen.coreservice.domain.executionGoalLink.dto.MoveRequest;
@@ -114,6 +115,20 @@ public class ExecutionGoalLinkService {
         if (remaining > 0) {
             throw new GeneralException(ErrorStatus.EXECUTION_LINK_QTY_EXCEEDED);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<AllExecutionResponse> getAll(Long parentId) {
+        List<ExecutionGoalLink> links =
+            executionGoalLinkRepository.findAllByParentId(parentId);
+
+        List<Long> historyIds = links.stream().map(ExecutionGoalLink::getEtfHistoryId).toList();
+        Map<Long, AccountEtfHistory> historyMap = accountEtfHistoryRepository.findAllById(historyIds)
+            .stream().collect(Collectors.toMap(AccountEtfHistory::getId, h -> h));
+
+        return links.stream()
+            .map(link -> AllExecutionResponse.of(link, historyMap.get(link.getEtfHistoryId())))
+            .toList();
     }
 
     @Transactional(readOnly = true)
