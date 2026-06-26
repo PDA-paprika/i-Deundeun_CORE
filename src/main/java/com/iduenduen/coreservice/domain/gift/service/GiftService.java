@@ -91,12 +91,19 @@ public class GiftService {
 			.sum();
 		totalGiftedAmt += etfGiftedAmt;
 
-		List<GiftSummaryResponse.YearlyAmount> yearly = completedTransfers.stream()
+		Map<Integer, Long> yearlyMap = completedTransfers.stream()
 			.collect(Collectors.groupingBy(
 				t -> t.getCompletedAt().getYear(),
 				Collectors.summingLong(GiftTransfer::getTransferredCashAmt)
-			))
-			.entrySet().stream()
+			));
+		contracts.stream()
+			.filter(c -> c.getGiftType() == com.iduenduen.coreservice.domain.gift.enums.GiftType.ETF)
+			.filter(c -> c.getFinalGiftAmount() != null || c.getEstimatedGiftAmount() != null)
+			.forEach(c -> {
+				long amt = c.getFinalGiftAmount() != null ? c.getFinalGiftAmount() : c.getEstimatedGiftAmount();
+				yearlyMap.merge(c.getStartDate().getYear(), amt, Long::sum);
+			});
+		List<GiftSummaryResponse.YearlyAmount> yearly = yearlyMap.entrySet().stream()
 			.sorted(Map.Entry.comparingByKey())
 			.map(e -> new GiftSummaryResponse.YearlyAmount(e.getKey(), e.getValue()))
 			.toList();
