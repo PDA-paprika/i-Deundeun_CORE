@@ -15,6 +15,9 @@ public class ParentFrequencyResponse {
     @JsonProperty("goal_type2")
     private Integer goalType2;
 
+    @JsonProperty("goal_type3")
+    private Integer goalType3;
+
     @JsonProperty("count")
     private Long count;
 }

@@ -27,13 +27,13 @@ public interface GoalRepository extends JpaRepository<Goal, Long> {
     List<Goal> findAllByParentId(Long parentId);
 
     @Query(value =
-        "SELECT g.goal_type1 AS goalType1, g.goal_type2 AS goalType2, COUNT(*) AS count " +
+        "SELECT g.goal_type1 AS goalType1, g.goal_type2 AS goalType2, g.goal_type3 AS goalType3, COUNT(*) AS count " +
         "FROM goals g " +
         "JOIN parents p ON g.parent_id = p.id " +
         "WHERE p.cluster_value = :clusterValue " +
         "  AND p.deleted_at IS NULL " +
         "  AND g.deleted_at IS NULL " +
-        "GROUP BY g.goal_type1, g.goal_type2 " +
+        "GROUP BY g.goal_type1, g.goal_type2, g.goal_type3 " +
         "ORDER BY count DESC",
         nativeQuery = true)
     List<GoalFrequencyProjection> countByClusterValue(@Param("clusterValue") Integer clusterValue);
