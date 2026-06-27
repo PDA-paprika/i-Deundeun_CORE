@@ -113,6 +113,12 @@ public class GoalService {
         return new GoalPreviewResponse(currentRate, previewRate);
     }
 
+    @Transactional
+    public void updateLevel(Long parentId, Long childId, Long goalId, int level) {
+        Goal goal = findGoal(parentId, childId, goalId);
+        goal.updateLevel(level);
+    }
+
     // 스케줄러 용 FAILED 처리 메소드
     @Transactional
     public void expireOverdueGoals() {

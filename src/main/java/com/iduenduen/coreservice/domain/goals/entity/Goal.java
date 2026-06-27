@@ -115,6 +115,10 @@ public class Goal extends BaseEntity {
         this.recommendationNote = recommendationNote;
     }
 
+    public void updateLevel(int level) {
+        this.level = level;
+    }
+
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
         this.status = GoalStatus.CANCELLED;

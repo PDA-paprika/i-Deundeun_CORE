@@ -34,7 +34,9 @@ public record GoalListResponse(List<GoalItem> goals) {
         @JsonProperty("remaining_period")
         String remainingPeriod,
 
-        GoalStatus status
+        GoalStatus status,
+
+        Integer level
     ) {
         public static GoalItem from(Goal goal) {
             return new GoalItem(
@@ -45,7 +47,8 @@ public record GoalListResponse(List<GoalItem> goals) {
                 goal.getTargetDate(),
                 goal.getAchievedPct(),
                 remainingPeriod(goal.getTargetDate()),
-                goal.getStatus()
+                goal.getStatus(),
+                goal.getLevel()
             );
         }
 
@@ -65,7 +68,8 @@ public record GoalListResponse(List<GoalItem> goals) {
                 goal.getTargetDate(),
                 achievedPct,
                 remainingPeriod(goal.getTargetDate()),
-                goal.getStatus()
+                goal.getStatus(),
+                goal.getLevel()
             );
         }
         private static String remainingPeriod(LocalDate targetDate) {
