@@ -55,7 +55,13 @@ public class GoalService {
 
     public GoalDetailResponse getGoal(Long parentId, Long childId, Long goalId) {
         Goal goal = findGoal(parentId, childId, goalId);
-        return GoalDetailResponse.from(goal);
+        Long investedAmt = executionGoalLinkRepository.sumInvestedAmtByGoalIds(List.of(goal.getId()))
+            .stream().findFirst().map(row -> ((Number) row[1]).longValue()).orElse(0L);
+        BigDecimal achievedPct = BigDecimal.valueOf(investedAmt)
+            .multiply(BigDecimal.valueOf(100))
+            .divide(BigDecimal.valueOf(goal.getTargetAmount() > 0 ? goal.getTargetAmount() : 1), 2, RoundingMode.HALF_UP)
+            .min(BigDecimal.valueOf(100));
+        return GoalDetailResponse.from(goal, achievedPct);
     }
 
     @Transactional
