@@ -8,7 +8,7 @@ CREATE TABLE `goals`
     `goal_type2`          INT           NULL,
     `goal_type3`          INT           NULL COMMENT '임시',
     `goal_type4`          INT           NULL COMMENT '임시',
-    `goal_type5`          INT           NULL COMMENT '임시',
+    `level`               TINYINT       NULL,
     `name`                VARCHAR(100)  NULL,
     `target_amount`       BIGINT        NOT NULL,
     `target_date`         DATE          NOT NULL,
