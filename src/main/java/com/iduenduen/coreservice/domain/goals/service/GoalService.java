@@ -101,6 +101,7 @@ public class GoalService {
     @Transactional
     public void deleteGoal(Long parentId, Long childId, Long goalId) {
         Goal goal = findGoal(parentId, childId, goalId);
+        executionGoalLinkRepository.unlinkByGoalId(goalId);
         goal.softDelete();
     }
 
