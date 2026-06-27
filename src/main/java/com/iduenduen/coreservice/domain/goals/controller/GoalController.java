@@ -33,11 +33,11 @@ public class GoalController {
 
     @Operation(summary = "자녀 목표 목록 조회")
     @GetMapping
-    public ResponseEntity<ApiResponse<GoalListResponse>> getGoals(
+    public ResponseEntity<ApiResponse<java.util.List<GoalListResponse.GoalItem>>> getGoals(
         @AuthenticationPrincipal Long parentId,
         @PathVariable Long childId,
         @RequestParam(defaultValue = "ACTIVE") GoalStatus status) {
-        return ApiResponse.success(SuccessStatus.SUCCESS_200, goalService.getGoals(parentId, childId, status));
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, goalService.getGoals(parentId, childId, status).goals());
     }
 
     @Operation(summary = "목표 단건 조회")

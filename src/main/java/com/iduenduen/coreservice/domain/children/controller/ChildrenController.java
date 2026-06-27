@@ -38,9 +38,9 @@ public class ChildrenController {
 
 			삭제되지 않은 자녀만 반환하며, 만나이는 서버에서 계산하여 응답합니다.""")
 	@GetMapping
-	public ResponseEntity<ApiResponse<ChildrenListResponse>> getChildren(
+	public ResponseEntity<ApiResponse<java.util.List<ChildrenListResponse.ChildItem>>> getChildren(
 		@AuthenticationPrincipal Long parentId) {
-		return ApiResponse.success(SuccessStatus.SUCCESS_200, childrenService.getChildren(parentId));
+		return ApiResponse.success(SuccessStatus.SUCCESS_200, childrenService.getChildren(parentId).children());
 	}
 
 	@Operation(
