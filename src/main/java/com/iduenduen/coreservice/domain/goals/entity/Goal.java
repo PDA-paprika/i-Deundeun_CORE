@@ -53,8 +53,8 @@ public class Goal extends BaseEntity {
     @Column(name = "goal_type4")
     private Integer goalType4;
 
-    @Column(name = "goal_type5")
-    private Integer goalType5;
+    @Column(name = "level")
+    private Integer level;
 
     @Column(name = "name", length = 100)
     private String name;
