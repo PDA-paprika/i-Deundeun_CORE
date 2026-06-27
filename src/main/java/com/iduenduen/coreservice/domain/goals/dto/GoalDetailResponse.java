@@ -42,9 +42,15 @@ public record GoalDetailResponse(
     @JsonProperty("recommendation_note")
     String recommendationNote,
 
-    GoalStatus status
+    GoalStatus status,
+
+    Integer level
 ) {
     public static GoalDetailResponse from(Goal goal) {
+        return from(goal, goal.getAchievedPct());
+    }
+
+    public static GoalDetailResponse from(Goal goal, BigDecimal achievedPct) {
         return new GoalDetailResponse(
             goal.getId(),
             goal.getGoalType1(),
@@ -53,11 +59,12 @@ public record GoalDetailResponse(
             goal.getName(),
             goal.getTargetAmount(),
             goal.getTargetDate(),
-            goal.getAchievedPct(),
+            achievedPct,
             remainingPeriod(goal.getTargetDate()),
             goal.getRecommendedAmount(),
             goal.getRecommendationNote(),
-            goal.getStatus()
+            goal.getStatus(),
+            goal.getLevel()
         );
     }
 
