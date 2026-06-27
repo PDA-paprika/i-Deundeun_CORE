@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 public class ParentService {
 
-    @Value("${ASSISTANT_URL:http://localhost:8085}")
+    @Value("${assistant.url:http://localhost:8085}")
     private String assistantServiceUrl;
 
     private final RestClient restClient = RestClient.create();
