@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
+import com.iduenduen.coreservice.domain.executionGoalLink.repository.ExecutionGoalLinkRepository;
 import com.iduenduen.coreservice.domain.goals.dto.GoalCreateRequest;
 import com.iduenduen.coreservice.domain.goals.dto.GoalCreateResponse;
 import com.iduenduen.coreservice.domain.goals.dto.GoalDetailResponse;
@@ -31,12 +34,23 @@ public class GoalService {
 
     private final GoalRepository goalRepository;
     private final ChildrenRepository childrenRepository;
+    private final ExecutionGoalLinkRepository executionGoalLinkRepository;
 
     public GoalListResponse getGoals(Long parentId, Long childId, GoalStatus status) {
         validateChildOwnership(parentId, childId);
         List<Goal> goals = goalRepository.findAllByChildIdAndParentIdAndStatusAndDeletedAtIsNull(
             childId, parentId, status);
-        return GoalListResponse.from(goals);
+
+        List<Long> goalIds = goals.stream().map(Goal::getId).toList();
+        Map<Long, Long> investedAmtMap = goalIds.isEmpty() ? Map.of() :
+            executionGoalLinkRepository.sumInvestedAmtByGoalIds(goalIds)
+                .stream()
+                .collect(Collectors.toMap(
+                    row -> ((Number) row[0]).longValue(),
+                    row -> ((Number) row[1]).longValue()
+                ));
+
+        return GoalListResponse.fromWithRate(goals, investedAmtMap);
     }
 
     public GoalDetailResponse getGoal(Long parentId, Long childId, Long goalId) {
@@ -75,8 +89,9 @@ public class GoalService {
             request.goalType3()
         );
 
-        // TODO: ETF 서버 연동 후 실제 값 추가 필요
-        BigDecimal achievedPct = calculateRate(0L, goal.getTargetAmount());
+        Long investedAmt = executionGoalLinkRepository.sumInvestedAmtByGoalIds(List.of(goal.getId()))
+            .stream().findFirst().map(row -> ((Number) row[1]).longValue()).orElse(0L);
+        BigDecimal achievedPct = calculateRate(investedAmt, goal.getTargetAmount());
         goal.updateAchievedPct(achievedPct);
 
         return new GoalUpdateResponse(goal.getId(), achievedPct);
@@ -97,6 +112,12 @@ public class GoalService {
         BigDecimal previewRate = calculateRate(0L, targetAmount != null ? targetAmount : goal.getTargetAmount());
 
         return new GoalPreviewResponse(currentRate, previewRate);
+    }
+
+    @Transactional
+    public void updateLevel(Long parentId, Long childId, Long goalId, int level) {
+        Goal goal = findGoal(parentId, childId, goalId);
+        goal.updateLevel(level);
     }
 
     // 스케줄러 용 FAILED 처리 메소드

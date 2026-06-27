@@ -78,6 +78,17 @@ public class GoalController {
         return ApiResponse.success(SuccessStatus.GOAL_DELETE_SUCCESS);
     }
 
+    @Operation(summary = "목표 레벨 업데이트")
+    @PatchMapping("/{goalId}/level")
+    public ResponseEntity<ApiResponse<Void>> updateLevel(
+        @AuthenticationPrincipal Long parentId,
+        @PathVariable Long childId,
+        @PathVariable Long goalId,
+        @RequestParam int level) {
+        goalService.updateLevel(parentId, childId, goalId, level);
+        return ApiResponse.success(SuccessStatus.SUCCESS_200);
+    }
+
     @Operation(summary = "달성률 미리보기", description = "목표 수정 시 변경 예상 달성률을 미리 계산합니다. DB에 저장되지 않습니다.")
     @PostMapping("/{goalId}/preview")
     public ResponseEntity<ApiResponse<GoalPreviewResponse>> previewGoal(
