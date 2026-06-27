@@ -71,6 +71,7 @@ public class GoalService {
             .name(request.name())
             .targetAmount(request.targetAmount())
             .targetDate(request.targetDate())
+            .level(0)
             .build();
 
         return GoalCreateResponse.from(goalRepository.save(goal));
