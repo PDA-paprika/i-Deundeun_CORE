@@ -28,6 +28,6 @@ public interface ExecutionGoalLinkRepository extends JpaRepository<ExecutionGoal
     List<ExecutionGoalLink> findForFifoDeduction(@Param("childId") Long childId, @Param("goalId") Long goalId);
 
     @Modifying
-    @Query("UPDATE ExecutionGoalLink e SET e.childId = NULL, e.goalId = NULL WHERE e.goalId = :goalId")
+    @Query("UPDATE ExecutionGoalLink e SET e.childId = NULL, e.goalId = NULL, e.linkedAt = CURRENT_TIMESTAMP WHERE e.goalId = :goalId AND e.qty > 0")
     void unlinkByGoalId(@Param("goalId") Long goalId);
 }
