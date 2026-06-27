@@ -42,12 +42,13 @@ public class GoalService {
             childId, parentId, status);
 
         List<Long> goalIds = goals.stream().map(Goal::getId).toList();
-        Map<Long, Long> investedAmtMap = executionGoalLinkRepository.sumInvestedAmtByGoalIds(goalIds)
-            .stream()
-            .collect(Collectors.toMap(
-                row -> ((Number) row[0]).longValue(),
-                row -> ((Number) row[1]).longValue()
-            ));
+        Map<Long, Long> investedAmtMap = goalIds.isEmpty() ? Map.of() :
+            executionGoalLinkRepository.sumInvestedAmtByGoalIds(goalIds)
+                .stream()
+                .collect(Collectors.toMap(
+                    row -> ((Number) row[0]).longValue(),
+                    row -> ((Number) row[1]).longValue()
+                ));
 
         return GoalListResponse.fromWithRate(goals, investedAmtMap);
     }
