@@ -83,7 +83,7 @@ public class Goal extends BaseEntity {
 
     @Builder
     public Goal(Long parentId, Long childId, GoalType goalType1, Integer goalType2, Integer goalType3,
-                String name, Long targetAmount, LocalDate targetDate) {
+                String name, Long targetAmount, LocalDate targetDate, Integer level) {
         this.parentId = parentId;
         this.childId = childId;
         this.goalType1 = goalType1;
@@ -92,6 +92,7 @@ public class Goal extends BaseEntity {
         this.name = name;
         this.targetAmount = targetAmount;
         this.targetDate = targetDate;
+        this.level = level;
         this.achievedPct = BigDecimal.ZERO;
         this.status = GoalStatus.ACTIVE;
     }
