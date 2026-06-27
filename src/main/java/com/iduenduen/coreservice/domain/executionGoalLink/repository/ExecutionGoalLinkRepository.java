@@ -14,7 +14,7 @@ public interface ExecutionGoalLinkRepository extends JpaRepository<ExecutionGoal
 
     List<ExecutionGoalLink> findByGoalIdAndChildIdOrderByCreatedAtDesc(Long goalId, Long childId);
 
-    @Query(value = "SELECT h.etf_id, SUM(l.qty) FROM execution_goal_links l JOIN account_etf_histories h ON l.etf_history_id = h.id WHERE l.parent_id = :parentId GROUP BY h.etf_id", nativeQuery = true)
+    @Query(value = "SELECT h.etf_id, SUM(l.qty) FROM execution_goal_links l JOIN account_etf_histories h ON l.etf_history_id = h.id WHERE l.parent_id = :parentId AND l.child_id IS NOT NULL AND l.goal_id IS NOT NULL GROUP BY h.etf_id", nativeQuery = true)
     List<Object[]> sumTaggedQtyByEtfIdForParent(@Param("parentId") Long parentId);
 
     @Query(value = "SELECT h.etf_id, h.etf_name_snapshot, SUM(l.qty) FROM execution_goal_links l JOIN account_etf_histories h ON l.etf_history_id = h.id WHERE l.goal_id = :goalId AND l.child_id = :childId GROUP BY h.etf_id, h.etf_name_snapshot", nativeQuery = true)
