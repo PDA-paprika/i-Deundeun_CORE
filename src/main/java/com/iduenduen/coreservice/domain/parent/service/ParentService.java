@@ -206,7 +206,7 @@ public class ParentService {
                 .monthlyHouseholdIncome(parent.getMonthlyHouseholdIncome())
                 .educationLevel(parent.getEducationLevel())
                 .parentEconomicActivity(parent.getParentEconomicActivity())
-                .childCount(parent.getChildCount())
+                .childCount(Math.min(parent.getChildCount(), 3))
                 .build();
 
         @SuppressWarnings("unchecked")
@@ -417,10 +417,13 @@ public class ParentService {
                        p.parent_economic_activity,
                        p.monthly_household_income,
                        p.education_level,
-                       p.child_count
+                       LEAST(p.child_count, 3) AS child_count
                 FROM parents p
                 JOIN region_mapping rm ON rm.region = p.region
                 WHERE p.deleted_at IS NULL
+                  AND p.monthly_household_income IS NOT NULL
+                  AND p.parent_economic_activity IS NOT NULL
+                  AND p.education_level IS NOT NULL
                 """,
                 (rs, rowNum) -> ParentFeatureRequest.builder()
                         .parentId(rs.getLong("id"))
