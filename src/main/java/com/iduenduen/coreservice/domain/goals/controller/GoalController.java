@@ -11,6 +11,7 @@ import com.iduenduen.coreservice.domain.goals.dto.GoalCreateRequest;
 import com.iduenduen.coreservice.domain.goals.dto.GoalCreateResponse;
 import com.iduenduen.coreservice.domain.goals.dto.GoalDetailResponse;
 import com.iduenduen.coreservice.domain.goals.dto.GoalListResponse;
+import com.iduenduen.coreservice.domain.goals.dto.GoalOrderRequest;
 import com.iduenduen.coreservice.domain.goals.dto.GoalPreviewRequest;
 import com.iduenduen.coreservice.domain.goals.dto.GoalPreviewResponse;
 import com.iduenduen.coreservice.domain.goals.dto.GoalUpdateRequest;
@@ -86,6 +87,16 @@ public class GoalController {
         @PathVariable Long goalId,
         @RequestParam int level) {
         goalService.updateLevel(parentId, childId, goalId, level);
+        return ApiResponse.success(SuccessStatus.SUCCESS_200);
+    }
+
+    @Operation(summary = "목표 순서 저장")
+    @PatchMapping("/order")
+    public ResponseEntity<ApiResponse<Void>> reorderGoals(
+        @AuthenticationPrincipal Long parentId,
+        @PathVariable Long childId,
+        @RequestBody @Valid GoalOrderRequest request) {
+        goalService.reorder(parentId, childId, request.ids());
         return ApiResponse.success(SuccessStatus.SUCCESS_200);
     }
 

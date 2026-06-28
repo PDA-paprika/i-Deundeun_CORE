@@ -2,7 +2,6 @@ package com.iduenduen.coreservice.domain.goals.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import com.iduenduen.coreservice.common.base.BaseEntity;
 import com.iduenduen.coreservice.domain.goals.enums.GoalStatus;
@@ -78,9 +77,6 @@ public class Goal extends BaseEntity {
     @Column(name = "status", nullable = false, length = 20)
     private GoalStatus status = GoalStatus.ACTIVE;
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
     @Builder
     public Goal(Long parentId, Long childId, GoalType goalType1, Integer goalType2, Integer goalType3,
                 String name, Long targetAmount, LocalDate targetDate, Integer level) {
@@ -118,11 +114,6 @@ public class Goal extends BaseEntity {
 
     public void updateLevel(int level) {
         this.level = level;
-    }
-
-    public void softDelete() {
-        this.deletedAt = LocalDateTime.now();
-        this.status = GoalStatus.CANCELLED;
     }
 
     public void expire() {

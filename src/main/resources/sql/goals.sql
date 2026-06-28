@@ -17,8 +17,7 @@ CREATE TABLE `goals`
     `recommendation_note` VARCHAR(1000) NULL COMMENT '목표설정도우미 결과 요약',
     `status`              VARCHAR(20)   NOT NULL DEFAULT 'active' COMMENT 'active|completed|cancelled',
     `created_at`          TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`          TIMESTAMP     NULL     DEFAULT NULL,
-    `deleted_at`          TIMESTAMP     NULL
+    `updated_at`          TIMESTAMP     NULL     DEFAULT NULL
 );
 
 ALTER TABLE `goals`

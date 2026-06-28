@@ -90,7 +90,7 @@ public class ExecutionGoalLinkService {
         if (req.childId() != null && req.goalId() != null) {
             childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(req.childId(), parentId)
                     .orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
-            goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(req.goalId(), req.childId(), parentId)
+            goalRepository.findByIdAndChildIdAndParentId(req.goalId(), req.childId(), parentId)
                     .orElseThrow(() -> new GeneralException(ErrorStatus.GOAL_NOT_FOUND));
         }
 
