@@ -1,7 +1,5 @@
 package com.iduenduen.coreservice.domain.goals.entity;
 
-import java.time.LocalDateTime;
-
 import com.iduenduen.coreservice.common.base.BaseEntity;
 import com.iduenduen.coreservice.domain.goals.converter.GoalTypeConverter;
 import com.iduenduen.coreservice.domain.goals.enums.GoalType;
@@ -44,9 +42,6 @@ public class AssistantGoalName extends BaseEntity {
     @Column(name = "name", length = 100)
     private String name;
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
     @Builder
     public AssistantGoalName(Long parentId, GoalType goalType1, Integer goalType2, Integer goalType3, String name) {
         this.parentId = parentId;
@@ -54,9 +49,5 @@ public class AssistantGoalName extends BaseEntity {
         this.goalType2 = goalType2;
         this.goalType3 = goalType3;
         this.name = name;
-    }
-
-    public void softDelete() {
-        this.deletedAt = LocalDateTime.now();
     }
 }
