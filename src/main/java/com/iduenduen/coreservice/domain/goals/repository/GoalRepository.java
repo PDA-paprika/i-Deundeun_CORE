@@ -14,11 +14,11 @@ import com.iduenduen.coreservice.domain.goals.enums.GoalStatus;
 public interface GoalRepository extends JpaRepository<Goal, Long> {
 
     // 자녀 목표 목록
-    List<Goal> findAllByChildIdAndParentIdAndStatusAndDeletedAtIsNull(
+    List<Goal> findAllByChildIdAndParentIdAndStatus(
         Long childId, Long parentId, GoalStatus status);
 
     // 단건 조회
-    Optional<Goal> findByIdAndChildIdAndParentIdAndDeletedAtIsNull(
+    Optional<Goal> findByIdAndChildIdAndParentId(
         Long id, Long childId, Long parentId);
 
     // FAILED 탐색
@@ -32,7 +32,6 @@ public interface GoalRepository extends JpaRepository<Goal, Long> {
         "JOIN parents p ON g.parent_id = p.id " +
         "WHERE p.cluster_value = :clusterValue " +
         "  AND p.deleted_at IS NULL " +
-        "  AND g.deleted_at IS NULL " +
         "GROUP BY g.goal_type1, g.goal_type2, g.goal_type3 " +
         "ORDER BY count DESC",
         nativeQuery = true)

@@ -22,7 +22,9 @@ import com.iduenduen.coreservice.domain.goals.dto.GoalPreviewResponse;
 import com.iduenduen.coreservice.domain.goals.dto.GoalUpdateRequest;
 import com.iduenduen.coreservice.domain.goals.dto.GoalUpdateResponse;
 import com.iduenduen.coreservice.domain.goals.entity.Goal;
+import com.iduenduen.coreservice.domain.goals.entity.GoalOrder;
 import com.iduenduen.coreservice.domain.goals.enums.GoalStatus;
+import com.iduenduen.coreservice.domain.goals.repository.GoalOrderRepository;
 import com.iduenduen.coreservice.domain.goals.repository.GoalRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -33,13 +35,29 @@ import lombok.RequiredArgsConstructor;
 public class GoalService {
 
     private final GoalRepository goalRepository;
+    private final GoalOrderRepository goalOrderRepository;
     private final ChildrenRepository childrenRepository;
     private final ExecutionGoalLinkRepository executionGoalLinkRepository;
 
     public GoalListResponse getGoals(Long parentId, Long childId, GoalStatus status) {
         validateChildOwnership(parentId, childId);
-        List<Goal> goals = goalRepository.findAllByChildIdAndParentIdAndStatusAndDeletedAtIsNull(
-            childId, parentId, status);
+        List<Goal> goals = goalRepository.findAllByChildIdAndParentIdAndStatus(childId, parentId, status);
+
+        List<GoalOrder> orders = goalOrderRepository.findByChildIdOrderBySortOrder(childId);
+        Map<Long, Integer> orderMap = orders.stream()
+            .collect(Collectors.toMap(o -> o.getGoal().getId(), GoalOrder::getSortOrder,
+                (a, b) -> a));
+
+        goals = goals.stream()
+            .sorted((a, b) -> {
+                Integer oa = orderMap.get(a.getId());
+                Integer ob = orderMap.get(b.getId());
+                if (oa != null && ob != null) return oa.compareTo(ob);
+                if (oa != null) return -1;
+                if (ob != null) return 1;
+                return a.getCreatedAt().compareTo(b.getCreatedAt());
+            })
+            .collect(Collectors.toList());
 
         List<Long> goalIds = goals.stream().map(Goal::getId).toList();
         Map<Long, Long> investedAmtMap = goalIds.isEmpty() ? Map.of() :
@@ -80,7 +98,14 @@ public class GoalService {
             .level(0)
             .build();
 
-        return GoalCreateResponse.from(goalRepository.save(goal));
+        Goal saved = goalRepository.save(goal);
+        int nextOrder = goalOrderRepository.findMaxSortOrderByChildId(childId) + 1;
+        goalOrderRepository.save(GoalOrder.builder()
+            .childId(childId)
+            .goal(saved)
+            .sortOrder(nextOrder)
+            .build());
+        return GoalCreateResponse.from(saved);
     }
 
     @Transactional
@@ -108,7 +133,40 @@ public class GoalService {
     public void deleteGoal(Long parentId, Long childId, Long goalId) {
         Goal goal = findGoal(parentId, childId, goalId);
         executionGoalLinkRepository.unlinkByGoalId(goalId);
-        goal.softDelete();
+        goalRepository.delete(goal);
+    }
+
+    @Transactional
+    public void reorder(Long parentId, Long childId, List<Long> ids) {
+        validateChildOwnership(parentId, childId);
+        List<Goal> goals = goalRepository.findAllById(ids);
+        boolean allOwned = goals.stream().allMatch(g -> g.getChildId().equals(childId) && g.getParentId().equals(parentId));
+        if (goals.size() != ids.size() || !allOwned) {
+            throw new GeneralException(ErrorStatus.FORBIDDEN);
+        }
+
+        Map<Long, GoalOrder> orderMap = goalOrderRepository.findByChildIdAndGoalIds(childId, ids)
+            .stream()
+            .collect(Collectors.toMap(o -> o.getGoal().getId(), o -> o, (a, b) ->
+                a.getCreatedAt().isBefore(b.getCreatedAt()) ? a : b));
+
+        Map<Long, Goal> goalMap = goals.stream()
+            .collect(Collectors.toMap(Goal::getId, g -> g));
+
+        for (int i = 0; i < ids.size(); i++) {
+            Long goalId = ids.get(i);
+            int sortOrder = i + 1;
+            GoalOrder existing = orderMap.get(goalId);
+            if (existing != null) {
+                existing.updateSortOrder(sortOrder);
+            } else {
+                goalOrderRepository.save(GoalOrder.builder()
+                    .childId(childId)
+                    .goal(goalMap.get(goalId))
+                    .sortOrder(sortOrder)
+                    .build());
+            }
+        }
     }
 
     public GoalPreviewResponse previewGoal(Long parentId, Long childId, Long goalId,
@@ -149,7 +207,7 @@ public class GoalService {
     }
 
     private Goal findGoal(Long parentId, Long childId, Long goalId) {
-        return goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(goalId, childId, parentId)
+        return goalRepository.findByIdAndChildIdAndParentId(goalId, childId, parentId)
             .orElseThrow(() -> new GeneralException(ErrorStatus.GOAL_NOT_FOUND));
     }
 }
