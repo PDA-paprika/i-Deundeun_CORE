@@ -7,7 +7,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.iduenduen.coreservice.domain.parent.dto.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.client.RestClient;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestTemplate;
 
 import com.iduenduen.coreservice.domain.account.repository.AccountCashHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
@@ -43,7 +46,7 @@ public class ParentService {
     @Value("${assistant.url:http://localhost:8085}")
     private String assistantServiceUrl;
 
-    private final RestClient restClient = RestClient.create();
+    private final RestTemplate restTemplate = new RestTemplate();
 
     private final ParentRepository parentRepository;
     private final JdbcTemplate jdbcTemplate;
@@ -126,6 +129,7 @@ public class ParentService {
                 request.getEducationLevel()
         );
 
+        recluster(parentId);
     }
 
     @Transactional
@@ -209,12 +213,13 @@ public class ParentService {
                 .childCount(Math.min(parent.getChildCount(), 3))
                 .build();
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
         @SuppressWarnings("unchecked")
-        java.util.Map<String, Integer> response = restClient.post()
-                .uri(assistantServiceUrl + "/parents/recluster")
-                .body(reclusterRequest)
-                .retrieve()
-                .body(java.util.Map.class);
+        java.util.Map<String, Integer> response = restTemplate.postForObject(
+                assistantServiceUrl + "/parents/recluster",
+                new HttpEntity<>(reclusterRequest, headers),
+                java.util.Map.class);
 
         Integer returnedCluster = response != null ? response.get("cluster_value") : null;
 
@@ -256,16 +261,21 @@ public class ParentService {
                 .distribution(distribution)
                 .build();
 
-        StatsResponse response = restClient.post()
-                .uri(assistantServiceUrl + "/stats/kor")
-                .body(requestWithDist)
-                .retrieve()
-                .body(StatsResponse.class);
-
-        if (response != null) {
-            response.setDistribution(distribution.stream().map(Double::valueOf).toList());
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            StatsResponse response = restTemplate.postForObject(
+                    assistantServiceUrl + "/stats/kor",
+                    new HttpEntity<>(requestWithDist, headers),
+                    StatsResponse.class);
+            if (response != null) {
+                response.setDistribution(distribution.stream().map(Double::valueOf).toList());
+            }
+            return response;
+        } catch (Exception e) {
+            log.warn("[Parent] 국가통계 Stats 서비스 호출 실패 - {}", e.getMessage());
+            return null;
         }
-        return response;
     }
 
     private List<Integer> fetchDistribution(Integer g1, Integer g2, Integer g3,
@@ -394,16 +404,21 @@ public class ParentService {
                 .distribution(distribution)
                 .build();
 
-        StatsResponse response = restClient.post()
-                .uri(assistantServiceUrl + "/stats/personal")
-                .body(requestWithDist)
-                .retrieve()
-                .body(StatsResponse.class);
-
-        if (response != null) {
-            response.setDistribution(distribution.stream().map(Double::valueOf).toList());
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            StatsResponse response = restTemplate.postForObject(
+                    assistantServiceUrl + "/stats/personal",
+                    new HttpEntity<>(requestWithDist, headers),
+                    StatsResponse.class);
+            if (response != null) {
+                response.setDistribution(distribution.stream().map(Double::valueOf).toList());
+            }
+            return response;
+        } catch (Exception e) {
+            log.warn("[Parent] 개인통계 Stats 서비스 호출 실패 - {}", e.getMessage());
+            return null;
         }
-        return response;
     }
 
     @Transactional
@@ -437,11 +452,12 @@ public class ParentService {
 
         log.info("[Parent] 학습 대상 부모 수: {}", features.size());
 
-        ClusterTrainResponse[] results = restClient.post()
-                .uri(assistantServiceUrl + "/cluster/train")
-                .body(features)
-                .retrieve()
-                .body(ClusterTrainResponse[].class);
+        HttpHeaders trainHeaders = new HttpHeaders();
+        trainHeaders.setContentType(MediaType.APPLICATION_JSON);
+        ClusterTrainResponse[] results = restTemplate.postForObject(
+                assistantServiceUrl + "/cluster/train",
+                new HttpEntity<>(features, trainHeaders),
+                ClusterTrainResponse[].class);
 
         if (results == null) return;
 
