@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +18,7 @@ import com.iduenduen.coreservice.common.status.SuccessStatus;
 import com.iduenduen.coreservice.domain.goals.dto.AssistantGoalNameCreateRequest;
 import com.iduenduen.coreservice.domain.goals.dto.AssistantGoalNameCreateResponse;
 import com.iduenduen.coreservice.domain.goals.dto.AssistantGoalNameGetResponse;
+import com.iduenduen.coreservice.domain.goals.dto.AssistantGoalNameOrderRequest;
 import com.iduenduen.coreservice.domain.goals.service.AssistantGoalNameService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,5 +58,14 @@ public class AssistantGoalNameController {
         @RequestBody @Valid AssistantGoalNameCreateRequest request) {
         return ApiResponse.success(SuccessStatus.SUCCESS_201,
             assistantGoalNameService.create(parentId, request));
+    }
+
+    @Operation(summary = "목표 도우미 칩 순서 저장")
+    @PatchMapping("/order")
+    public ResponseEntity<ApiResponse<Void>> reorder(
+        @AuthenticationPrincipal Long parentId,
+        @RequestBody @Valid AssistantGoalNameOrderRequest request) {
+        assistantGoalNameService.reorder(parentId, request.ids());
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, null);
     }
 }

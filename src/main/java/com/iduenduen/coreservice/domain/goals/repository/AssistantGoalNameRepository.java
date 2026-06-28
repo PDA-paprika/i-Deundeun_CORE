@@ -8,9 +8,9 @@ import com.iduenduen.coreservice.domain.goals.entity.AssistantGoalName;
 
 public interface AssistantGoalNameRepository extends JpaRepository<AssistantGoalName, Long> {
 
-    List<AssistantGoalName> findByParentIdAndDeletedAtIsNull(Long parentId);
+    List<AssistantGoalName> findByParentId(Long parentId);
 
-    java.util.Optional<AssistantGoalName> findByIdAndParentIdAndDeletedAtIsNull(Long id, Long parentId);
+    java.util.Optional<AssistantGoalName> findByIdAndParentId(Long id, Long parentId);
 
-    boolean existsByParentIdAndGoalType1AndGoalType2AndGoalType3AndDeletedAtIsNull(Long parentId, com.iduenduen.coreservice.domain.goals.enums.GoalType goalType1, Integer goalType2, Integer goalType3);
+    boolean existsByParentIdAndGoalType1AndGoalType2AndGoalType3(Long parentId, com.iduenduen.coreservice.domain.goals.enums.GoalType goalType1, Integer goalType2, Integer goalType3);
 }
