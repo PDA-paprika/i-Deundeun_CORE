@@ -363,7 +363,7 @@ public class ParentService {
                           AND go.goal_type2   = ?
                           AND go.goal_type3   = ?
                           AND go.parent_id   != ?
-                          AND go.deleted_at   IS NULL
+                          AND go.status       = 'active'
                         """,
                         Integer.class,
                         parent.getClusterValue(), request.getGoalType1(), request.getGoalType2(),
@@ -376,7 +376,7 @@ public class ParentService {
                           AND go.goal_type1   = ?
                           AND go.goal_type2   = ?
                           AND go.parent_id   != ?
-                          AND go.deleted_at   IS NULL
+                          AND go.status       = 'active'
                         """,
                         Integer.class,
                         parent.getClusterValue(), request.getGoalType1(), request.getGoalType2(), parentId);
