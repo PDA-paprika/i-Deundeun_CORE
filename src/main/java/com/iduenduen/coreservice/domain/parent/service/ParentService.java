@@ -270,38 +270,80 @@ public class ParentService {
 
     private List<Integer> fetchDistribution(Integer g1, Integer g2, Integer g3,
                                              Integer residenceRegion, Integer economicActivity, Integer income) {
-        if (income == null || economicActivity == null) return List.of();
         if (g1 == 1 && (g2 == 2 || g2 == 3)) {
-            return jdbcTemplate.queryForList("""
-                    SELECT total_amount FROM elementary_middle_education_stat
-                    WHERE school_level = ?
-                      AND residence_region = ?
-                      AND parent_economic_activity = ?
-                      AND monthly_household_income = ?
-                      AND desired_high_school_type = ?
-                    """,
-                    Integer.class, g2, residenceRegion, economicActivity, income, g3);
+            return fetchEducationStat("elementary_middle_education_stat", "desired_high_school_type",
+                    g2, residenceRegion, economicActivity, income, g3);
         } else if (g1 == 1 && g2 == 4) {
-            return jdbcTemplate.queryForList("""
-                    SELECT total_amount FROM high_school_education_stat
-                    WHERE school_level = ?
-                      AND residence_region = ?
-                      AND parent_economic_activity = ?
-                      AND monthly_household_income = ?
-                      AND desired_university_major = ?
-                    """,
-                    Integer.class, g2, residenceRegion, economicActivity, income, g3);
+            return fetchEducationStat("high_school_education_stat", "desired_university_major",
+                    g2, residenceRegion, economicActivity, income, g3);
         } else if (g1 == 2) {
-            int cappedIncome = income < 6 ? income : 6;
-            return jdbcTemplate.queryForList("""
-                    SELECT total_amount FROM living_stat
-                    WHERE school_name = ?
-                      AND parent_economic_activity = ?
-                      AND monthly_household_income = ?
-                    """,
-                    Integer.class, String.valueOf(g2), String.valueOf(economicActivity), String.valueOf(cappedIncome));
+            return fetchLivingStat(g2, economicActivity, income);
         }
         return List.of();
+    }
+
+    private List<Integer> fetchEducationStat(String table, String typeColumn,
+                                              Integer schoolLevel, Integer region,
+                                              Integer activity, Integer income, Integer type) {
+        List<Integer> result;
+
+        // 1단계: 전체 조건
+        if (income != null && activity != null) {
+            result = jdbcTemplate.queryForList(
+                    "SELECT total_amount FROM " + table +
+                    " WHERE school_level = ? AND residence_region = ? AND parent_economic_activity = ? AND monthly_household_income = ? AND " + typeColumn + " = ?",
+                    Integer.class, schoolLevel, region, activity, income, type);
+            if (!result.isEmpty()) return result;
+        }
+
+        // 2단계: income 제거
+        if (activity != null) {
+            result = jdbcTemplate.queryForList(
+                    "SELECT total_amount FROM " + table +
+                    " WHERE school_level = ? AND residence_region = ? AND parent_economic_activity = ? AND " + typeColumn + " = ?",
+                    Integer.class, schoolLevel, region, activity, type);
+            if (!result.isEmpty()) return result;
+        }
+
+        // 3단계: income, activity 제거
+        result = jdbcTemplate.queryForList(
+                "SELECT total_amount FROM " + table +
+                " WHERE school_level = ? AND residence_region = ? AND " + typeColumn + " = ?",
+                Integer.class, schoolLevel, region, type);
+        if (!result.isEmpty()) return result;
+
+        // 4단계: income, activity, region 모두 제거 (school_level + desired_type만)
+        return jdbcTemplate.queryForList(
+                "SELECT total_amount FROM " + table +
+                " WHERE school_level = ? AND " + typeColumn + " = ?",
+                Integer.class, schoolLevel, type);
+    }
+
+    private List<Integer> fetchLivingStat(Integer schoolLevel, Integer activity, Integer income) {
+        List<Integer> result;
+        int cappedIncome = (income != null && income < 6) ? income : 6;
+        String schoolName = String.valueOf(schoolLevel);
+
+        // 1단계: 전체 조건
+        if (income != null && activity != null) {
+            result = jdbcTemplate.queryForList(
+                    "SELECT total_amount FROM living_stat WHERE school_name = ? AND parent_economic_activity = ? AND monthly_household_income = ?",
+                    Integer.class, schoolName, String.valueOf(activity), String.valueOf(cappedIncome));
+            if (!result.isEmpty()) return result;
+        }
+
+        // 2단계: income 제거
+        if (activity != null) {
+            result = jdbcTemplate.queryForList(
+                    "SELECT total_amount FROM living_stat WHERE school_name = ? AND parent_economic_activity = ?",
+                    Integer.class, schoolName, String.valueOf(activity));
+            if (!result.isEmpty()) return result;
+        }
+
+        // 3단계: income, activity 모두 제거 (school_name만)
+        return jdbcTemplate.queryForList(
+                "SELECT total_amount FROM living_stat WHERE school_name = ?",
+                Integer.class, schoolName);
     }
 
     public StatsResponse getStatsPersonal(Long parentId, StatsPersonalRequest request) {
