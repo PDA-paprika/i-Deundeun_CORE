@@ -87,6 +87,10 @@ public class ExecutionGoalLinkService {
             throw new GeneralException(ErrorStatus.FORBIDDEN);
         }
 
+        if ((req.childId() == null) != (req.goalId() == null)) {
+            throw new GeneralException(ErrorStatus.EXECUTION_LINK_INVALID_CHILD_GOAL);
+        }
+
         if (req.childId() != null && req.goalId() != null) {
             childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(req.childId(), parentId)
                     .orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
