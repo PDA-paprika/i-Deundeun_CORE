@@ -17,6 +17,8 @@ import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.account.entity.Account;
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHoldingId;
+import com.iduenduen.coreservice.domain.account.enums.EtfEventType;
+import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHoldingRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
@@ -44,6 +46,7 @@ public class GiftService {
 	private final ChildrenRepository childrenRepository;
 	private final AccountRepository accountRepository;
 	private final AccountEtfHoldingRepository accountEtfHoldingRepository;
+	private final AccountEtfHistoryRepository accountEtfHistoryRepository;
 	private final MtsEtfClient mtsEtfClient;
 
 	// 증여 계약 목록 조회
@@ -271,12 +274,17 @@ public class GiftService {
 		GiftContract contract = giftContractRepository.findByIdAndParentId(contractId, parentId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.GIFT_CONTRACT_NOT_FOUND));
 
+		String etfName = null;
 		if (contract.getGiftType() == com.iduenduen.coreservice.domain.gift.enums.GiftType.ETF) {
 			resolveFinalGiftAmountIfReady(contract);
+			etfName = accountEtfHistoryRepository
+				.findFirstByReferenceIdAndEventType(contractId.toString(), EtfEventType.GIFT_ETF_OUT)
+				.map(h -> h.getEtfNameSnapshot())
+				.orElse(null);
 		}
 
 		List<GiftTransfer> transfers = giftTransferRepository.findAllByGiftContractIdOrderBySequenceNoAsc(contractId);
-		return GiftContractDetailResponse.of(contract, transfers);
+		return GiftContractDetailResponse.of(contract, transfers, etfName);
 	}
 
 	private void resolveFinalGiftAmountIfReady(GiftContract contract) {
