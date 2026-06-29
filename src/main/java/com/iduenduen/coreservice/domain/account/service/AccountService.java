@@ -103,7 +103,7 @@ public class AccountService {
         accountEtfHistoryRepository.save(history);
 
         if (req.eventType() == EtfEventType.SELL) {
-            executionGoalLinkService.deductByFifo(req.childId(), req.goalId(), req.qty());
+            executionGoalLinkService.deductByFifo(req.childId(), req.goalId(), req.etfId(), req.qty());
             return null;
         }
 
