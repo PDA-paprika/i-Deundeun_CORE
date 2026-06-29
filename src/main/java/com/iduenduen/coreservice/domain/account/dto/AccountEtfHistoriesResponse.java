@@ -17,7 +17,7 @@ public class AccountEtfHistoriesResponse {
         private Long id;
         private Long etfId;
         private String eventType;
-        private String etfNameSnapshot;
+        private String etfName;
         private String logoImg;
         private int qtyDelta;
         private Long price;

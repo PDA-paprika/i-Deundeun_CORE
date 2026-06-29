@@ -199,7 +199,7 @@ public class AccountService {
                         .id(h.getId())
                         .etfId(h.getEtfId())
                         .eventType(h.getEventType().name())
-                        .etfNameSnapshot(h.getEtfNameSnapshot())
+                        .etfName(h.getEtfNameSnapshot())
                         .logoImg(logoMap.get(h.getEtfId()))
                         .qtyDelta(h.getQtyDelta())
                         .price(h.getPrice())
