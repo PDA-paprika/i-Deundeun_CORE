@@ -15,8 +15,10 @@ public class AccountEtfHistoriesResponse {
     @Builder
     public static class HistoryDto {
         private Long id;
+        private Long etfId;
         private String eventType;
         private String etfNameSnapshot;
+        private String logoImg;
         private int qtyDelta;
         private Long price;
         private LocalDateTime occurredAt;
