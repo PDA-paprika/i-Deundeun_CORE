@@ -16,6 +16,35 @@ public class MtsEtfClient {
     @Value("${mts.api.base-url}")
     private String mtsBaseUrl;
 
+    public String getEtfCodeById(Long etfId) {
+        String url = mtsBaseUrl + "/etf/id/" + etfId;
+        try {
+            Map<?, ?> body = restClient.get().uri(url).retrieve().body(Map.class);
+            if (body == null) return null;
+            Map<?, ?> data = (Map<?, ?>) body.get("data");
+            if (data == null) return null;
+            return (String) data.get("etfCode");
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public record EtfInfo(String etfCode, String etfName) {}
+
+    public EtfInfo getEtfInfoById(Long etfId) {
+        if (etfId == null) return null;
+        String url = mtsBaseUrl + "/etf/id/" + etfId;
+        try {
+            Map<?, ?> body = restClient.get().uri(url).retrieve().body(Map.class);
+            if (body == null) return null;
+            Map<?, ?> data = (Map<?, ?>) body.get("data");
+            if (data == null) return null;
+            return new EtfInfo((String) data.get("etfCode"), (String) data.get("etfName"));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public Long getValuationAverage(String etfCode, LocalDate from, LocalDate to) {
         String url = UriComponentsBuilder
                 .fromUriString(mtsBaseUrl + "/etf/{etfCode}/valuation-average")
