@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -79,7 +80,7 @@ class GoalServiceTest {
     void getGoals_성공() {
         given(childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(CHILD_ID, PARENT_ID))
             .willReturn(Optional.of(child));
-        given(goalRepository.findAllByChildIdAndParentIdAndStatusAndDeletedAtIsNull(
+        given(goalRepository.findAllByChildIdAndParentIdAndStatus(
             CHILD_ID, PARENT_ID, GoalStatus.ACTIVE))
             .willReturn(List.of(goal));
 
@@ -102,7 +103,7 @@ class GoalServiceTest {
 
     @Test
     void getGoal_성공() {
-        given(goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(GOAL_ID, CHILD_ID, PARENT_ID))
+        given(goalRepository.findByIdAndChildIdAndParentId(GOAL_ID, CHILD_ID, PARENT_ID))
             .willReturn(Optional.of(goal));
 
         var response = goalService.getGoal(PARENT_ID, CHILD_ID, GOAL_ID);
@@ -114,7 +115,7 @@ class GoalServiceTest {
 
     @Test
     void getGoal_존재하지_않으면_예외() {
-        given(goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(GOAL_ID, CHILD_ID, PARENT_ID))
+        given(goalRepository.findByIdAndChildIdAndParentId(GOAL_ID, CHILD_ID, PARENT_ID))
             .willReturn(Optional.empty());
 
         assertThatThrownBy(() -> goalService.getGoal(PARENT_ID, CHILD_ID, GOAL_ID))
@@ -158,7 +159,7 @@ class GoalServiceTest {
 
     @Test
     void updateGoal_성공() {
-        given(goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(GOAL_ID, CHILD_ID, PARENT_ID))
+        given(goalRepository.findByIdAndChildIdAndParentId(GOAL_ID, CHILD_ID, PARENT_ID))
             .willReturn(Optional.of(goal));
 
         GoalUpdateRequest request = new GoalUpdateRequest(
@@ -175,7 +176,7 @@ class GoalServiceTest {
 
     @Test
     void updateGoal_존재하지_않으면_예외() {
-        given(goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(GOAL_ID, CHILD_ID, PARENT_ID))
+        given(goalRepository.findByIdAndChildIdAndParentId(GOAL_ID, CHILD_ID, PARENT_ID))
             .willReturn(Optional.empty());
 
         GoalUpdateRequest request = new GoalUpdateRequest(
@@ -190,18 +191,17 @@ class GoalServiceTest {
 
     @Test
     void deleteGoal_성공() {
-        given(goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(GOAL_ID, CHILD_ID, PARENT_ID))
+        given(goalRepository.findByIdAndChildIdAndParentId(GOAL_ID, CHILD_ID, PARENT_ID))
             .willReturn(Optional.of(goal));
 
         goalService.deleteGoal(PARENT_ID, CHILD_ID, GOAL_ID);
 
-        assertThat(goal.getDeletedAt()).isNotNull();
-        assertThat(goal.getStatus()).isEqualTo(GoalStatus.CANCELLED);
+        verify(goalRepository).delete(goal);
     }
 
     @Test
     void deleteGoal_존재하지_않으면_예외() {
-        given(goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(GOAL_ID, CHILD_ID, PARENT_ID))
+        given(goalRepository.findByIdAndChildIdAndParentId(GOAL_ID, CHILD_ID, PARENT_ID))
             .willReturn(Optional.empty());
 
         assertThatThrownBy(() -> goalService.deleteGoal(PARENT_ID, CHILD_ID, GOAL_ID))
@@ -212,7 +212,7 @@ class GoalServiceTest {
 
     @Test
     void previewGoal_목표금액_변경시_미리보기() {
-        given(goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(GOAL_ID, CHILD_ID, PARENT_ID))
+        given(goalRepository.findByIdAndChildIdAndParentId(GOAL_ID, CHILD_ID, PARENT_ID))
             .willReturn(Optional.of(goal));
 
         var response = goalService.previewGoal(PARENT_ID, CHILD_ID, GOAL_ID, 100_000_000L, null);
@@ -224,7 +224,7 @@ class GoalServiceTest {
 
     @Test
     void previewGoal_파라미터_없으면_기존_목표금액으로_계산() {
-        given(goalRepository.findByIdAndChildIdAndParentIdAndDeletedAtIsNull(GOAL_ID, CHILD_ID, PARENT_ID))
+        given(goalRepository.findByIdAndChildIdAndParentId(GOAL_ID, CHILD_ID, PARENT_ID))
             .willReturn(Optional.of(goal));
 
         var response = goalService.previewGoal(PARENT_ID, CHILD_ID, GOAL_ID, null, null);
