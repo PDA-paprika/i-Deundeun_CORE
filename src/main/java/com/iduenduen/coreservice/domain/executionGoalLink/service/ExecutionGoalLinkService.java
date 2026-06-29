@@ -121,6 +121,21 @@ public class ExecutionGoalLinkService {
         }
     }
 
+    @Transactional
+    public void deductByLinkId(Long linkId, int sellQty) {
+        ExecutionGoalLink link = executionGoalLinkRepository.findById(linkId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.EXECUTION_LINK_NOT_FOUND));
+
+        if (link.getQty() < sellQty) {
+            throw new GeneralException(ErrorStatus.EXECUTION_LINK_QTY_EXCEEDED);
+        }
+
+        link.deductQty(sellQty);
+        if (link.getQty() == 0) {
+            executionGoalLinkRepository.delete(link);
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<AllExecutionResponse> getAll(Long parentId) {
         List<ExecutionGoalLink> links =

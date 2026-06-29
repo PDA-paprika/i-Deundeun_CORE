@@ -51,6 +51,9 @@ public record EtfTradeNotificationRequest(
     @JsonProperty("goal_id")
     Long goalId,
 
+    @JsonProperty("link_id")
+    Long linkId,
+
     @NotNull
     @JsonFormat(pattern = "yyyy.MM.dd HH:mm:ss")
     @JsonProperty("occurred_at")
