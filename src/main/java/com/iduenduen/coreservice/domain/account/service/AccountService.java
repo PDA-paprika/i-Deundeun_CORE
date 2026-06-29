@@ -209,15 +209,17 @@ public class AccountService {
         AccountEtfHolding parentHolding = accountEtfHoldingRepository.findById(holdingId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.INSUFFICIENT_ETF_QTY));
 
-        long avgBuyPrice = executionGoalLinkService.deductUnallocatedForGift(parentId, req.etfId(), req.qty());
+        executionGoalLinkService.deductUnallocatedForGift(parentId, req.etfId(), req.qty());
 
         int newParentQty = parentHolding.getQty() - req.qty();
         if (newParentQty == 0) {
             accountEtfHoldingRepository.delete(parentHolding);
         } else {
-            parentHolding.update(newParentQty, avgBuyPrice);
+            parentHolding.update(newParentQty, parentHolding.getAvgBuyPrice());
             accountEtfHoldingRepository.save(parentHolding);
         }
+
+        long currentPrice = req.currentPrice();
 
         AccountEtfHoldingId childHoldingId = new AccountEtfHoldingId(req.etfId(), childAccount.getAccountId());
         AccountEtfHolding childHolding = accountEtfHoldingRepository.findById(childHoldingId).orElse(null);
@@ -225,17 +227,17 @@ public class AccountService {
             childHolding = AccountEtfHolding.builder()
                     .id(childHoldingId)
                     .qty(req.qty())
-                    .avgBuyPrice(avgBuyPrice)
+                    .avgBuyPrice(currentPrice)
                     .build();
         } else {
-            long totalCost = childHolding.getAvgBuyPrice() * childHolding.getQty() + avgBuyPrice * req.qty();
+            long totalCost = childHolding.getAvgBuyPrice() * childHolding.getQty() + currentPrice * req.qty();
             int newChildQty = childHolding.getQty() + req.qty();
             childHolding.update(newChildQty, totalCost / newChildQty);
         }
         accountEtfHoldingRepository.save(childHolding);
 
         LocalDate today = LocalDate.now();
-        long giftAmount = avgBuyPrice * req.qty();
+        long giftAmount = currentPrice * req.qty();
         String etfName = req.etfName() != null ? req.etfName() : "";
         String title = req.memo() != null && !req.memo().isBlank() ? req.memo() : etfName + " 증여";
 
@@ -279,7 +281,7 @@ public class AccountService {
                 .etfId(req.etfId())
                 .etfNameSnapshot(etfName)
                 .qtyDelta(-req.qty())
-                .price(avgBuyPrice)
+                .price(currentPrice)
                 .referenceId(contractIdStr)
                 .referenceType(ReferenceType.GIFT)
                 .memo(req.memo())
@@ -292,7 +294,7 @@ public class AccountService {
                 .etfId(req.etfId())
                 .etfNameSnapshot(etfName)
                 .qtyDelta(req.qty())
-                .price(avgBuyPrice)
+                .price(currentPrice)
                 .referenceId(contractIdStr)
                 .referenceType(ReferenceType.GIFT)
                 .memo(req.memo())

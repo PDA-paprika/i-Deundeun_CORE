@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-
 public record EtfGiftRequest(
 
     @NotNull
@@ -17,6 +16,11 @@ public record EtfGiftRequest(
 
     @JsonProperty("etf_name")
     String etfName,
+
+    @NotNull
+    @Positive
+    @JsonProperty("current_price")
+    Long currentPrice,
 
     @Positive
     int qty,
