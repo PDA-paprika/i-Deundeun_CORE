@@ -82,6 +82,7 @@ public class ParentService {
                 .educationLevel(parent.getEducationLevel())
                 .clusterValue(parent.getClusterValue())
                 .selectedChildId(parent.getSelectedChildId())
+                .certFileUrl(parent.getCertFileUrl())
                 .build();
     }
 

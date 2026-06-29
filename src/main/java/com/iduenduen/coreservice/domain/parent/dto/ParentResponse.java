@@ -46,4 +46,7 @@ public class ParentResponse {
 
     @JsonProperty("account_id")
     private Long accountId;
+
+    @JsonProperty("cert_file_url")
+    private String certFileUrl;
 }
