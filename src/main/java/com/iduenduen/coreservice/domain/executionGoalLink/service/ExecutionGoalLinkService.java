@@ -102,8 +102,8 @@ public class ExecutionGoalLinkService {
     }
 
     @Transactional
-    public void deductByFifo(Long childId, Long goalId, int sellQty) {
-        List<ExecutionGoalLink> links = executionGoalLinkRepository.findForFifoDeduction(childId, goalId);
+    public void deductByFifo(Long childId, Long goalId, Long etfId, int sellQty) {
+        List<ExecutionGoalLink> links = executionGoalLinkRepository.findForFifoDeduction(childId, goalId, etfId);
 
         int remaining = sellQty;
         for (ExecutionGoalLink link : links) {

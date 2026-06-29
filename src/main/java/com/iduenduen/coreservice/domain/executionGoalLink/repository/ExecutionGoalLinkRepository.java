@@ -24,8 +24,8 @@ public interface ExecutionGoalLinkRepository extends JpaRepository<ExecutionGoal
     @Query(value = "SELECT l.goal_id, SUM(l.qty * h.price) FROM execution_goal_links l JOIN account_etf_histories h ON l.etf_history_id = h.id WHERE l.goal_id IN :goalIds GROUP BY l.goal_id", nativeQuery = true)
     List<Object[]> sumInvestedAmtByGoalIds(@Param("goalIds") List<Long> goalIds);
 
-    @Query("SELECT e FROM ExecutionGoalLink e WHERE (e.childId = :childId OR (:childId IS NULL AND e.childId IS NULL)) AND (e.goalId = :goalId OR (:goalId IS NULL AND e.goalId IS NULL)) AND e.qty > 0 ORDER BY e.createdAt ASC")
-    List<ExecutionGoalLink> findForFifoDeduction(@Param("childId") Long childId, @Param("goalId") Long goalId);
+    @Query(value = "SELECT l.* FROM execution_goal_links l JOIN account_etf_histories h ON l.etf_history_id = h.id WHERE (l.child_id = :childId OR (:childId IS NULL AND l.child_id IS NULL)) AND (l.goal_id = :goalId OR (:goalId IS NULL AND l.goal_id IS NULL)) AND h.etf_id = :etfId AND l.qty > 0 ORDER BY l.created_at ASC", nativeQuery = true)
+    List<ExecutionGoalLink> findForFifoDeduction(@Param("childId") Long childId, @Param("goalId") Long goalId, @Param("etfId") Long etfId);
 
     @Modifying
     @Query("UPDATE ExecutionGoalLink e SET e.childId = NULL, e.goalId = NULL, e.linkedAt = CURRENT_TIMESTAMP WHERE e.goalId = :goalId")
