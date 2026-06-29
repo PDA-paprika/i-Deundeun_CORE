@@ -30,4 +30,8 @@ public interface ExecutionGoalLinkRepository extends JpaRepository<ExecutionGoal
     @Modifying
     @Query("UPDATE ExecutionGoalLink e SET e.childId = NULL, e.goalId = NULL, e.linkedAt = CURRENT_TIMESTAMP WHERE e.goalId = :goalId")
     void unlinkByGoalId(@Param("goalId") Long goalId);
+
+    @Modifying
+    @Query("UPDATE ExecutionGoalLink e SET e.childId = NULL, e.goalId = NULL, e.linkedAt = CURRENT_TIMESTAMP WHERE e.childId = :childId")
+    void unlinkByChildId(@Param("childId") Long childId);
 }
