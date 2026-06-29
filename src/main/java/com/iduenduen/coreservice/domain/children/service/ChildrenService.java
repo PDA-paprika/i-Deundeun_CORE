@@ -15,6 +15,7 @@ import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 import com.iduenduen.coreservice.domain.children.entity.Children;
 import com.iduenduen.coreservice.domain.children.enums.CreatedVia;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
+import com.iduenduen.coreservice.domain.executionGoalLink.repository.ExecutionGoalLinkRepository;
 import com.iduenduen.coreservice.domain.parent.repository.ParentRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class ChildrenService {
 	private final ParentRepository parentRepository;
 	private final AccountRepository accountRepository;
 	private final AccountEtfHoldingRepository accountEtfHoldingRepository;
+	private final ExecutionGoalLinkRepository executionGoalLinkRepository;
 
 	public ChildrenListResponse getChildren(Long parentId) {
 		List<ChildrenListResponse.ChildItem> items = childrenRepository.findAllByParentIdAndDeletedAtIsNull(parentId)
@@ -53,6 +55,7 @@ public class ChildrenService {
 		Children child = childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(childId, parentId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
 		child.softDelete();
+		executionGoalLinkRepository.unlinkByChildId(childId);
 	}
 
 	@Transactional
