@@ -198,7 +198,11 @@ public class AccountService {
                 .map(h -> AccountEtfHistoriesResponse.HistoryDto.builder()
                         .id(h.getId())
                         .etfId(h.getEtfId())
-                        .eventType(h.getEventType().name())
+                        .eventType(switch (h.getEventType()) {
+                                case GIFT_ETF_OUT -> "ETF 증여";
+                                case GIFT_ETF_IN -> "ETF 증여 수령";
+                                default -> h.getEventType().name();
+                        })
                         .etfName(h.getEtfNameSnapshot())
                         .logoImg(logoMap.get(h.getEtfId()))
                         .qtyDelta(h.getQtyDelta())
