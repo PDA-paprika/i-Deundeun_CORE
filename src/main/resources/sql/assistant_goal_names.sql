@@ -13,5 +13,5 @@ CREATE TABLE `assistant_goal_names`
 
 ALTER TABLE `assistant_goal_names`
     ADD CONSTRAINT `FK_parents_TO_assistant_goal_names_1` FOREIGN KEY (`parent_id`)
-        REFERENCES `parents` (`id`);
+        REFERENCES `parents` (`id`) ON DELETE CASCADE;
 

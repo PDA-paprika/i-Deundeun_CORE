@@ -8,6 +8,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -30,7 +31,7 @@ public class AssistantGoalNameOrder extends BaseEntity {
     private Long parentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "goal_id", nullable = false)
+    @JoinColumn(name = "goal_id", nullable = false, foreignKey = @ForeignKey(name = "FK8xj3x3x7wph4y2xat90bsojmx", foreignKeyDefinition = "FOREIGN KEY (goal_id) REFERENCES assistant_goal_names(id) ON DELETE CASCADE"))
     private AssistantGoalName goal;
 
     @Column(name = "sort_order", nullable = false)
