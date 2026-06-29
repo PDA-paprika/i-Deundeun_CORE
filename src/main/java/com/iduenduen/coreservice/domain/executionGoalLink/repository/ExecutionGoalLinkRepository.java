@@ -27,6 +27,9 @@ public interface ExecutionGoalLinkRepository extends JpaRepository<ExecutionGoal
     @Query(value = "SELECT l.* FROM execution_goal_links l JOIN account_etf_histories h ON l.etf_history_id = h.id WHERE (l.child_id = :childId OR (:childId IS NULL AND l.child_id IS NULL)) AND (l.goal_id = :goalId OR (:goalId IS NULL AND l.goal_id IS NULL)) AND h.etf_id = :etfId AND l.qty > 0 ORDER BY l.created_at ASC", nativeQuery = true)
     List<ExecutionGoalLink> findForFifoDeduction(@Param("childId") Long childId, @Param("goalId") Long goalId, @Param("etfId") Long etfId);
 
+    @Query(value = "SELECT id, logo_img FROM etfs WHERE id IN :etfIds", nativeQuery = true)
+    List<Object[]> findLogoImgByEtfIds(@Param("etfIds") List<Long> etfIds);
+
     @Modifying
     @Query("UPDATE ExecutionGoalLink e SET e.childId = NULL, e.goalId = NULL, e.linkedAt = CURRENT_TIMESTAMP WHERE e.goalId = :goalId")
     void unlinkByGoalId(@Param("goalId") Long goalId);

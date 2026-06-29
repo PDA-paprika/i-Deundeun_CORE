@@ -31,6 +31,9 @@ public record AllExecutionResponse(
     @JsonProperty("goal_id")
     Long goalId,
 
+    @JsonProperty("logo_img")
+    String logoImg,
+
     @JsonProperty("event_type")
     EtfEventType eventType,
 
@@ -38,7 +41,7 @@ public record AllExecutionResponse(
     @JsonProperty("occurred_at")
     LocalDateTime occurredAt
 ) {
-    public static AllExecutionResponse of(ExecutionGoalLink link, AccountEtfHistory history) {
+    public static AllExecutionResponse of(ExecutionGoalLink link, AccountEtfHistory history, String logoImg) {
         return new AllExecutionResponse(
             link.getId(),
             history.getId(),
@@ -48,6 +51,7 @@ public record AllExecutionResponse(
             history.getPrice(),
             link.getChildId(),
             link.getGoalId(),
+            logoImg,
             history.getEventType(),
             history.getOccurredAt()
         );
