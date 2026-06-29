@@ -101,8 +101,8 @@ class AuthServiceTest {
         Parent saved = createParent();
 
         doNothing().when(emailVerificationService).isEmailVerified(anyString());
-        given(parentRepository.existsByEmail("test@example.com")).willReturn(false);
-        given(parentRepository.existsByAccountNumber("1234567890")).willReturn(false);
+        given(parentRepository.existsByEmailAndDeletedAtIsNull("test@example.com")).willReturn(false);
+        given(parentRepository.existsByAccountNumberAndDeletedAtIsNull("1234567890")).willReturn(false);
         given(passwordEncoder.encode("mypassword123")).willReturn("encoded-password");
         given(parentRepository.save(any(Parent.class))).willReturn(saved);
         given(accountRepository.save(any(Account.class))).willReturn(null);
@@ -122,7 +122,7 @@ class AuthServiceTest {
     void signup_이메일이_중복되면_예외() {
         SignupRequest request = createSignupRequest();
         doNothing().when(emailVerificationService).isEmailVerified(anyString());
-        given(parentRepository.existsByEmail("test@example.com")).willReturn(true);
+        given(parentRepository.existsByEmailAndDeletedAtIsNull("test@example.com")).willReturn(true);
 
         assertThatThrownBy(() -> authService.signup(request, httpServletResponse))
                 .isInstanceOf(GeneralException.class);
@@ -132,8 +132,8 @@ class AuthServiceTest {
     void signup_계좌번호가_중복되면_예외() {
         SignupRequest request = createSignupRequest();
         doNothing().when(emailVerificationService).isEmailVerified(anyString());
-        given(parentRepository.existsByEmail("test@example.com")).willReturn(false);
-        given(parentRepository.existsByAccountNumber("1234567890")).willReturn(true);
+        given(parentRepository.existsByEmailAndDeletedAtIsNull("test@example.com")).willReturn(false);
+        given(parentRepository.existsByAccountNumberAndDeletedAtIsNull("1234567890")).willReturn(true);
 
         assertThatThrownBy(() -> authService.signup(request, httpServletResponse))
                 .isInstanceOf(GeneralException.class);

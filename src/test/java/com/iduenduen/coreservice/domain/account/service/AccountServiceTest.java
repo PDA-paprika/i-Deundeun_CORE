@@ -113,7 +113,7 @@ class AccountServiceTest {
 
         EtfTradeNotificationRequest req = new EtfTradeNotificationRequest(
             ACCOUNT_ID, PARENT_ID, EtfEventType.BUY, null, "ETF001",
-            3, 50_000L, null, null, null, null, null,
+            3, 50_000L, null, null, null, null, null, null,
             LocalDateTime.now()
         );
 
@@ -135,7 +135,7 @@ class AccountServiceTest {
 
         EtfTradeNotificationRequest req = new EtfTradeNotificationRequest(
             ACCOUNT_ID, PARENT_ID, EtfEventType.BUY, null, "ETF001",
-            3, 50_000L, null, null, null, null, null,
+            3, 50_000L, null, null, null, null, null, null,
             LocalDateTime.now()
         );
 
@@ -156,13 +156,13 @@ class AccountServiceTest {
 
         EtfTradeNotificationRequest req = new EtfTradeNotificationRequest(
             ACCOUNT_ID, PARENT_ID, EtfEventType.SELL, null, "ETF001",
-            1, 52_000L, null, null, null, CHILD_ID, GOAL_ID,
+            1, 52_000L, null, null, null, CHILD_ID, GOAL_ID, null,
             LocalDateTime.now()
         );
 
         accountService.recordTrade(req);
 
-        verify(executionGoalLinkService).deductByFifo(CHILD_ID, GOAL_ID, 1);
+        verify(executionGoalLinkService).deductByFifo(CHILD_ID, GOAL_ID, null, 1);
     }
 
     @Test
@@ -176,12 +176,12 @@ class AccountServiceTest {
 
         EtfTradeNotificationRequest req = new EtfTradeNotificationRequest(
             ACCOUNT_ID, PARENT_ID, EtfEventType.SELL, null, "ETF001",
-            1, 52_000L, null, null, null, null, null,
+            1, 52_000L, null, null, null, null, null, null,
             LocalDateTime.now()
         );
 
         accountService.recordTrade(req);
 
-        verify(executionGoalLinkService).deductByFifo(null, null, 1);
+        verify(executionGoalLinkService).deductByFifo(null, null, null, 1);
     }
 }

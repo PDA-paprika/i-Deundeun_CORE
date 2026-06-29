@@ -163,8 +163,19 @@ public class ExecutionGoalLinkService {
         Map<Long, AccountEtfHistory> historyMap = accountEtfHistoryRepository.findAllById(historyIds)
             .stream().collect(Collectors.toMap(AccountEtfHistory::getId, h -> h));
 
+        List<Long> etfIds = historyMap.values().stream().map(AccountEtfHistory::getEtfId).distinct().toList();
+        Map<Long, String> logoMap = executionGoalLinkRepository.findLogoImgByEtfIds(etfIds)
+            .stream().collect(Collectors.toMap(
+                row -> ((Number) row[0]).longValue(),
+                row -> (String) row[1]
+            ));
+
         return links.stream()
-            .map(link -> AllExecutionResponse.of(link, historyMap.get(link.getEtfHistoryId())))
+            .map(link -> {
+                AccountEtfHistory history = historyMap.get(link.getEtfHistoryId());
+                String logoImg = logoMap.get(history.getEtfId());
+                return AllExecutionResponse.of(link, history, logoImg);
+            })
             .toList();
     }
 

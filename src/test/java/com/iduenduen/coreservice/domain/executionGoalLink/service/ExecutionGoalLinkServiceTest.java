@@ -4,10 +4,12 @@ import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHistory;
 import com.iduenduen.coreservice.domain.account.enums.EtfEventType;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
+import com.iduenduen.coreservice.domain.children.entity.Children;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
-import com.iduenduen.coreservice.domain.executionGoalLink.dto.LinkRequest;
+import com.iduenduen.coreservice.domain.executionGoalLink.dto.MoveRequest;
 import com.iduenduen.coreservice.domain.executionGoalLink.entity.ExecutionGoalLink;
 import com.iduenduen.coreservice.domain.executionGoalLink.repository.ExecutionGoalLinkRepository;
+import com.iduenduen.coreservice.domain.goals.entity.Goal;
 import com.iduenduen.coreservice.domain.goals.repository.GoalRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,6 +46,7 @@ class ExecutionGoalLinkServiceTest {
     private static final Long PARENT_ID = 1L;
     private static final Long CHILD_ID = 2L;
     private static final Long GOAL_ID = 3L;
+    private static final Long ETF_ID = 5L;
     private static final Long HISTORY_ID = 10L;
     private static final Long LINK_ID = 100L;
     private static final int QTY = 3;
@@ -62,7 +66,7 @@ class ExecutionGoalLinkServiceTest {
         history = AccountEtfHistory.builder()
             .accountId(1L)
             .eventType(EtfEventType.BUY)
-            .etfId(1L)
+            .etfId(ETF_ID)
             .qtyDelta(QTY)
             .price(50_000L)
             .occurredAt(LocalDateTime.now())
@@ -125,7 +129,7 @@ class ExecutionGoalLinkServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).id()).isEqualTo(LINK_ID);
-        assertThat(result.get(0).etfId()).isEqualTo(1L);
+        assertThat(result.get(0).etfId()).isEqualTo(ETF_ID);
     }
 
     @Test
@@ -141,35 +145,38 @@ class ExecutionGoalLinkServiceTest {
         assertThat(result).isEmpty();
     }
 
-    // ── link (자녀·목표 연결) ────────────────────────────────────
+    // ── moveLink ─────────────────────────────────────────────────
 
     @Test
-    void link_성공() {
+    void moveLink_성공() {
         given(executionGoalLinkRepository.findById(LINK_ID)).willReturn(Optional.of(unlinkedLink));
+        given(childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(CHILD_ID, PARENT_ID))
+            .willReturn(Optional.of(mock(Children.class)));
+        given(goalRepository.findByIdAndChildIdAndParentId(GOAL_ID, CHILD_ID, PARENT_ID))
+            .willReturn(Optional.of(mock(Goal.class)));
 
-        executionGoalLinkService.link(PARENT_ID, LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, QTY, "대학 등록금"));
+        executionGoalLinkService.moveLink(PARENT_ID, LINK_ID, new MoveRequest(CHILD_ID, GOAL_ID));
 
         assertThat(unlinkedLink.getChildId()).isEqualTo(CHILD_ID);
         assertThat(unlinkedLink.getGoalId()).isEqualTo(GOAL_ID);
-        assertThat(unlinkedLink.getLinkedAt()).isNotNull();
     }
 
     @Test
-    void link_존재하지_않으면_예외() {
+    void moveLink_존재하지_않으면_예외() {
         given(executionGoalLinkRepository.findById(LINK_ID)).willReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-            executionGoalLinkService.link(PARENT_ID, LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, QTY, "메모")))
+            executionGoalLinkService.moveLink(PARENT_ID, LINK_ID, new MoveRequest(CHILD_ID, GOAL_ID)))
             .isInstanceOf(GeneralException.class);
     }
 
     @Test
-    void link_이미_연결됐으면_예외() {
-        unlinkedLink.link(CHILD_ID, GOAL_ID, "기존 메모");
+    void moveLink_다른_부모_예외() {
+        Long otherParentId = 999L;
         given(executionGoalLinkRepository.findById(LINK_ID)).willReturn(Optional.of(unlinkedLink));
 
         assertThatThrownBy(() ->
-            executionGoalLinkService.link(PARENT_ID, LINK_ID, new LinkRequest(CHILD_ID, GOAL_ID, QTY, "새 메모")))
+            executionGoalLinkService.moveLink(otherParentId, LINK_ID, new MoveRequest(CHILD_ID, GOAL_ID)))
             .isInstanceOf(GeneralException.class);
     }
 
@@ -182,10 +189,10 @@ class ExecutionGoalLinkServiceTest {
         ExecutionGoalLink link2 = ExecutionGoalLink.builder()
             .parentId(PARENT_ID).etfHistoryId(HISTORY_ID).qty(10).build();
 
-        given(executionGoalLinkRepository.findForFifoDeduction(CHILD_ID, GOAL_ID))
+        given(executionGoalLinkRepository.findForFifoDeduction(CHILD_ID, GOAL_ID, ETF_ID))
             .willReturn(List.of(link1, link2));
 
-        executionGoalLinkService.deductByFifo(CHILD_ID, GOAL_ID, 5);
+        executionGoalLinkService.deductByFifo(CHILD_ID, GOAL_ID, ETF_ID, 5);
 
         verify(executionGoalLinkRepository).delete(link1);
         assertThat(link2.getQty()).isEqualTo(6);
@@ -196,11 +203,46 @@ class ExecutionGoalLinkServiceTest {
         ExecutionGoalLink link = ExecutionGoalLink.builder()
             .parentId(PARENT_ID).etfHistoryId(HISTORY_ID).qty(3).build();
 
-        given(executionGoalLinkRepository.findForFifoDeduction(CHILD_ID, GOAL_ID))
+        given(executionGoalLinkRepository.findForFifoDeduction(CHILD_ID, GOAL_ID, ETF_ID))
             .willReturn(List.of(link));
 
         assertThatThrownBy(() ->
-            executionGoalLinkService.deductByFifo(CHILD_ID, GOAL_ID, 5))
+            executionGoalLinkService.deductByFifo(CHILD_ID, GOAL_ID, ETF_ID, 5))
+            .isInstanceOf(GeneralException.class);
+    }
+
+    // ── deductByLinkId ───────────────────────────────────────────
+
+    @Test
+    void deductByLinkId_성공() {
+        ExecutionGoalLink link = ExecutionGoalLink.builder()
+            .parentId(PARENT_ID).etfHistoryId(HISTORY_ID).qty(5).build();
+        given(executionGoalLinkRepository.findById(LINK_ID)).willReturn(Optional.of(link));
+
+        executionGoalLinkService.deductByLinkId(LINK_ID, 3);
+
+        assertThat(link.getQty()).isEqualTo(2);
+    }
+
+    @Test
+    void deductByLinkId_qty_0이면_삭제() {
+        ExecutionGoalLink link = ExecutionGoalLink.builder()
+            .parentId(PARENT_ID).etfHistoryId(HISTORY_ID).qty(3).build();
+        given(executionGoalLinkRepository.findById(LINK_ID)).willReturn(Optional.of(link));
+
+        executionGoalLinkService.deductByLinkId(LINK_ID, 3);
+
+        verify(executionGoalLinkRepository).delete(link);
+    }
+
+    @Test
+    void deductByLinkId_수량초과_예외() {
+        ExecutionGoalLink link = ExecutionGoalLink.builder()
+            .parentId(PARENT_ID).etfHistoryId(HISTORY_ID).qty(2).build();
+        given(executionGoalLinkRepository.findById(LINK_ID)).willReturn(Optional.of(link));
+
+        assertThatThrownBy(() ->
+            executionGoalLinkService.deductByLinkId(LINK_ID, 5))
             .isInstanceOf(GeneralException.class);
     }
 }

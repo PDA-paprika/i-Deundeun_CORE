@@ -34,6 +34,9 @@ public interface ExecutionGoalLinkRepository extends JpaRepository<ExecutionGoal
     List<ExecutionGoalLink> findUnallocatedForFifoDeduction(
         @Param("parentId") Long parentId, @Param("etfId") Long etfId);
 
+    @Query(value = "SELECT id, logo_img FROM etfs WHERE id IN :etfIds", nativeQuery = true)
+    List<Object[]> findLogoImgByEtfIds(@Param("etfIds") List<Long> etfIds);
+
     @Modifying
     @Query("UPDATE ExecutionGoalLink e SET e.childId = NULL, e.goalId = NULL, e.linkedAt = CURRENT_TIMESTAMP WHERE e.goalId = :goalId")
     void unlinkByGoalId(@Param("goalId") Long goalId);

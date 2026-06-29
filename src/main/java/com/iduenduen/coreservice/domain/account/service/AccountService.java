@@ -308,11 +308,20 @@ public class AccountService {
         List<AccountEtfHistory> histories = accountEtfHistoryRepository
                 .findByAccountIdOrderByOccurredAtDesc(accountId);
 
+        List<Long> etfIds = histories.stream().map(AccountEtfHistory::getEtfId).distinct().toList();
+        Map<Long, String> logoMap = accountEtfHistoryRepository.findLogoImgByEtfIds(etfIds)
+                .stream().collect(java.util.stream.Collectors.toMap(
+                        row -> ((Number) row[0]).longValue(),
+                        row -> (String) row[1]
+                ));
+
         List<AccountEtfHistoriesResponse.HistoryDto> dtos = histories.stream()
                 .map(h -> AccountEtfHistoriesResponse.HistoryDto.builder()
                         .id(h.getId())
+                        .etfId(h.getEtfId())
                         .eventType(h.getEventType().name())
-                        .etfNameSnapshot(h.getEtfNameSnapshot())
+                        .etfName(h.getEtfNameSnapshot())
+                        .logoImg(logoMap.get(h.getEtfId()))
                         .qtyDelta(h.getQtyDelta())
                         .price(h.getPrice())
                         .occurredAt(h.getOccurredAt())
