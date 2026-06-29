@@ -17,8 +17,6 @@ import com.iduenduen.coreservice.common.exception.GeneralException;
 import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.account.entity.Account;
 import com.iduenduen.coreservice.domain.account.entity.AccountEtfHoldingId;
-import com.iduenduen.coreservice.domain.account.enums.EtfEventType;
-import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHoldingRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
 import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
@@ -46,7 +44,6 @@ public class GiftService {
 	private final ChildrenRepository childrenRepository;
 	private final AccountRepository accountRepository;
 	private final AccountEtfHoldingRepository accountEtfHoldingRepository;
-	private final AccountEtfHistoryRepository accountEtfHistoryRepository;
 	private final MtsEtfClient mtsEtfClient;
 
 	// 증여 계약 목록 조회
@@ -275,16 +272,26 @@ public class GiftService {
 			.orElseThrow(() -> new GeneralException(ErrorStatus.GIFT_CONTRACT_NOT_FOUND));
 
 		String etfName = null;
+		Long etfPrice = null;
 		if (contract.getGiftType() == com.iduenduen.coreservice.domain.gift.enums.GiftType.ETF) {
 			resolveFinalGiftAmountIfReady(contract);
-			etfName = accountEtfHistoryRepository
-				.findFirstByReferenceIdAndEventType(contractId.toString(), EtfEventType.GIFT_ETF_OUT)
-				.map(h -> h.getEtfNameSnapshot())
-				.orElse(null);
+			MtsEtfClient.EtfInfo info = mtsEtfClient.getEtfInfoById(contract.getExternalEtfId());
+			etfName = info != null ? info.etfName() : null;
+			if (contract.getEstimatedGiftAmount() != null && contract.getQty() != null && contract.getQty() > 0) {
+				etfPrice = contract.getEstimatedGiftAmount() / contract.getQty();
+			}
 		}
 
 		List<GiftTransfer> transfers = giftTransferRepository.findAllByGiftContractIdOrderBySequenceNoAsc(contractId);
-		return GiftContractDetailResponse.of(contract, transfers, etfName);
+		return GiftContractDetailResponse.of(contract, transfers, etfName, etfPrice);
+	}
+
+	@Transactional
+	public void resolvePendingEtfValuations() {
+		LocalDate threshold = LocalDate.now().minusMonths(2);
+		List<GiftContract> pending = giftContractRepository.findPendingEtfValuations(
+			com.iduenduen.coreservice.domain.gift.enums.GiftType.ETF, threshold);
+		pending.forEach(this::resolveFinalGiftAmountIfReady);
 	}
 
 	private void resolveFinalGiftAmountIfReady(GiftContract contract) {
@@ -294,10 +301,12 @@ public class GiftService {
 		LocalDate confirmableDate = contract.getValuationBaseDate().plusMonths(2);
 		if (LocalDate.now().isBefore(confirmableDate)) return;
 
+		String etfCode = mtsEtfClient.getEtfCodeById(contract.getExternalEtfId());
+		if (etfCode == null) return;
+
 		LocalDate from = contract.getValuationBaseDate().minusMonths(2);
 		LocalDate to = contract.getValuationBaseDate().plusMonths(2);
-		// etfCode는 externalEtfId로 MTS에서 조회 (추후 GiftContract에 etfCode 저장으로 개선 가능)
-		Long avgPrice = mtsEtfClient.getValuationAverage(String.valueOf(contract.getExternalEtfId()), from, to);
+		Long avgPrice = mtsEtfClient.getValuationAverage(etfCode, from, to);
 		if (avgPrice != null && contract.getQty() != null) {
 			contract.confirmFinalGiftAmount(avgPrice * contract.getQty());
 		}

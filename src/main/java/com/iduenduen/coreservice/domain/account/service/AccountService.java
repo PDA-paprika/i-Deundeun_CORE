@@ -255,7 +255,6 @@ public class AccountService {
                 .endDate(today)
                 .build();
         contract.initEtfValuation(today, giftAmount);
-        contract.confirmFinalGiftAmount(giftAmount);
         contract.activate();
         contract.complete();
         giftContractRepository.save(contract);
