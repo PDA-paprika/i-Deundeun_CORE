@@ -68,4 +68,12 @@ public class AccountController {
             @RequestParam Long accountId) {
         return ApiResponse.success(SuccessStatus.SUCCESS_200, accountService.getEtfHistories(accountId));
     }
+
+    @PostMapping("/etf-transfer")
+    @Operation(summary = "ETF 증여", description = "부모가 보유한 ETF를 자녀 계좌로 즉시 증여합니다.")
+    public ResponseEntity<ApiResponse<EtfGiftResponse>> transferEtf(
+            @AuthenticationPrincipal Long parentId,
+            @RequestBody @Valid EtfGiftRequest req) {
+        return ApiResponse.success(SuccessStatus.ETF_GIFT_SUCCESS, accountService.transferEtf(parentId, req));
+    }
 }

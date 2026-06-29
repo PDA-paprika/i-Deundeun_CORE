@@ -21,6 +21,7 @@ public record GiftContractDetailResponse(
         @JsonProperty("start_date") LocalDate startDate,
         @JsonProperty("end_date") LocalDate endDate,
         @JsonProperty("external_etf_id") Long externalEtfId,
+        @JsonProperty("etf_name") String etfName,
         Integer qty,
         @JsonProperty("valuation_base_date") LocalDate valuationBaseDate,
         @JsonProperty("estimated_gift_amount") Long estimatedGiftAmount,
@@ -50,7 +51,7 @@ public record GiftContractDetailResponse(
         }
     }
 
-    public static GiftContractDetailResponse of(GiftContract contract, List<GiftTransfer> transfers) {
+    public static GiftContractDetailResponse of(GiftContract contract, List<GiftTransfer> transfers, String etfName) {
         return new GiftContractDetailResponse(
                 contract.getId(),
                 contract.getGiftType(),
@@ -61,6 +62,7 @@ public record GiftContractDetailResponse(
                 contract.getStartDate(),
                 contract.getEndDate(),
                 contract.getExternalEtfId(),
+                etfName,
                 contract.getQty(),
                 contract.getValuationBaseDate(),
                 contract.getEstimatedGiftAmount(),

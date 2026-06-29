@@ -122,6 +122,24 @@ public class ExecutionGoalLinkService {
     }
 
     @Transactional
+    public void deductUnallocatedForGift(Long parentId, Long etfId, int qty) {
+        List<ExecutionGoalLink> links =
+            executionGoalLinkRepository.findUnallocatedForFifoDeduction(parentId, etfId);
+
+        int remaining = qty;
+
+        for (ExecutionGoalLink link : links) {
+            if (remaining <= 0) break;
+            int deduct = Math.min(link.getQty(), remaining);
+            link.deductQty(deduct);
+            remaining -= deduct;
+            if (link.getQty() == 0) executionGoalLinkRepository.delete(link);
+        }
+
+        if (remaining > 0) throw new GeneralException(ErrorStatus.INSUFFICIENT_ETF_QTY);
+    }
+
+    @Transactional
     public void deductByLinkId(Long linkId, int sellQty) {
         ExecutionGoalLink link = executionGoalLinkRepository.findById(linkId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.EXECUTION_LINK_NOT_FOUND));

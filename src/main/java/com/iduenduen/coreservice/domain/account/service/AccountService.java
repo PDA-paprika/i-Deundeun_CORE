@@ -5,15 +5,24 @@ import com.iduenduen.coreservice.common.status.ErrorStatus;
 import com.iduenduen.coreservice.domain.account.dto.*;
 import com.iduenduen.coreservice.domain.account.entity.*;
 import com.iduenduen.coreservice.domain.account.enums.EtfEventType;
+import com.iduenduen.coreservice.domain.account.enums.ReferenceType;
 import com.iduenduen.coreservice.domain.account.repository.AccountCashHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHistoryRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountEtfHoldingRepository;
 import com.iduenduen.coreservice.domain.account.repository.AccountRepository;
+import com.iduenduen.coreservice.domain.children.repository.ChildrenRepository;
 import com.iduenduen.coreservice.domain.executionGoalLink.service.ExecutionGoalLinkService;
+import com.iduenduen.coreservice.domain.gift.entity.GiftContract;
+import com.iduenduen.coreservice.domain.gift.entity.GiftTransfer;
+import com.iduenduen.coreservice.domain.gift.enums.GiftType;
+import com.iduenduen.coreservice.domain.gift.repository.GiftContractRepository;
+import com.iduenduen.coreservice.domain.gift.repository.GiftTransferRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +35,9 @@ public class AccountService {
     private final ExecutionGoalLinkService executionGoalLinkService;
     private final AccountEtfHoldingRepository accountEtfHoldingRepository;
     private final AccountCashHistoryRepository accountCashHistoryRepository;
+    private final ChildrenRepository childrenRepository;
+    private final GiftContractRepository giftContractRepository;
+    private final GiftTransferRepository giftTransferRepository;
 
     public AccountInfoResponse getMyAccount(Long parentId) {
         Account account = accountRepository.findByParentId(parentId)
@@ -181,6 +193,115 @@ public class AccountService {
                 .totalCount(dtos.size())
                 .histories(dtos)
                 .build();
+    }
+
+    @Transactional
+    public EtfGiftResponse transferEtf(Long parentId, EtfGiftRequest req) {
+        childrenRepository.findByIdAndParentIdAndDeletedAtIsNull(req.childId(), parentId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.CHILDREN_NOT_FOUND));
+
+        Account parentAccount = accountRepository.findByParentId(parentId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.ACCOUNT_NOT_FOUND));
+        Account childAccount = accountRepository.findByChildId(req.childId())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.ACCOUNT_NOT_FOUND));
+
+        AccountEtfHoldingId holdingId = new AccountEtfHoldingId(req.etfId(), parentAccount.getAccountId());
+        AccountEtfHolding parentHolding = accountEtfHoldingRepository.findById(holdingId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.INSUFFICIENT_ETF_QTY));
+
+        executionGoalLinkService.deductUnallocatedForGift(parentId, req.etfId(), req.qty());
+
+        int newParentQty = parentHolding.getQty() - req.qty();
+        if (newParentQty == 0) {
+            accountEtfHoldingRepository.delete(parentHolding);
+        } else {
+            parentHolding.update(newParentQty, parentHolding.getAvgBuyPrice());
+            accountEtfHoldingRepository.save(parentHolding);
+        }
+
+        long currentPrice = req.currentPrice();
+
+        AccountEtfHoldingId childHoldingId = new AccountEtfHoldingId(req.etfId(), childAccount.getAccountId());
+        AccountEtfHolding childHolding = accountEtfHoldingRepository.findById(childHoldingId).orElse(null);
+        if (childHolding == null) {
+            childHolding = AccountEtfHolding.builder()
+                    .id(childHoldingId)
+                    .qty(req.qty())
+                    .avgBuyPrice(currentPrice)
+                    .build();
+        } else {
+            long totalCost = childHolding.getAvgBuyPrice() * childHolding.getQty() + currentPrice * req.qty();
+            int newChildQty = childHolding.getQty() + req.qty();
+            childHolding.update(newChildQty, totalCost / newChildQty);
+        }
+        accountEtfHoldingRepository.save(childHolding);
+
+        LocalDate today = LocalDate.now();
+        long giftAmount = currentPrice * req.qty();
+        String etfName = req.etfName() != null ? req.etfName() : "";
+        String title = req.memo() != null && !req.memo().isBlank() ? req.memo() : etfName + " 증여";
+
+        GiftContract contract = GiftContract.builder()
+                .parentId(parentId)
+                .childId(req.childId())
+                .fromAccountId(parentAccount.getAccountId())
+                .toAccountId(childAccount.getAccountId())
+                .externalEtfId(req.etfId())
+                .giftType(GiftType.ETF)
+                .title(title)
+                .qty(req.qty())
+                .cashAmount(0L)
+                .startDate(today)
+                .endDate(today)
+                .build();
+        contract.initEtfValuation(today, giftAmount);
+        contract.confirmFinalGiftAmount(giftAmount);
+        contract.activate();
+        contract.complete();
+        giftContractRepository.save(contract);
+
+        GiftTransfer transfer = GiftTransfer.builder()
+                .giftContractId(contract.getId())
+                .sequenceNo(1)
+                .scheduledDate(today)
+                .requiredCashAmt(0L)
+                .availableCashAmt(0L)
+                .requiredEtfQty(req.qty())
+                .availableEtfQty(req.qty())
+                .build();
+        transfer.complete(0L, req.qty());
+        giftTransferRepository.save(transfer);
+
+        String contractIdStr = contract.getId().toString();
+        LocalDateTime now = LocalDateTime.now();
+
+        accountEtfHistoryRepository.save(AccountEtfHistory.builder()
+                .accountId(parentAccount.getAccountId())
+                .eventType(EtfEventType.GIFT_ETF_OUT)
+                .etfId(req.etfId())
+                .etfNameSnapshot(etfName)
+                .qtyDelta(-req.qty())
+                .price(currentPrice)
+                .referenceId(contractIdStr)
+                .referenceType(ReferenceType.GIFT)
+                .memo(req.memo())
+                .occurredAt(now)
+                .build());
+
+        accountEtfHistoryRepository.save(AccountEtfHistory.builder()
+                .accountId(childAccount.getAccountId())
+                .eventType(EtfEventType.GIFT_ETF_IN)
+                .etfId(req.etfId())
+                .etfNameSnapshot(etfName)
+                .qtyDelta(req.qty())
+                .price(currentPrice)
+                .referenceId(contractIdStr)
+                .referenceType(ReferenceType.GIFT)
+                .memo(req.memo())
+                .occurredAt(now)
+                .build());
+
+        return new EtfGiftResponse(contract.getId());
     }
 
     public AccountEtfHistoriesResponse getEtfHistories(Long accountId) {

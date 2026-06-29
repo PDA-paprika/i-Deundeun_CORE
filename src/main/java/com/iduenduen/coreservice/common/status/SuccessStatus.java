@@ -51,7 +51,12 @@ public enum SuccessStatus implements BaseStatus {
      * Execution Goal Links
      */
     EXECUTION_LINK_CREATED("EXEC_201", HttpStatus.CREATED, "체결 기록이 등록되었습니다."),
-    EXECUTION_LINK_SUCCESS("EXEC_200", HttpStatus.OK, "성공입니다.");
+    EXECUTION_LINK_SUCCESS("EXEC_200", HttpStatus.OK, "성공입니다."),
+
+    /**
+     * ETF Gift
+     */
+    ETF_GIFT_SUCCESS("GIFT_ETF_201", HttpStatus.CREATED, "ETF 증여가 완료되었습니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
