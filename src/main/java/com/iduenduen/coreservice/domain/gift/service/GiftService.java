@@ -476,7 +476,14 @@ public class GiftService {
 				AccountEtfHoldingId holdingId = new AccountEtfHoldingId(
 						request.externalEtfId(), fromAccount.getAccountId());
 				accountEtfHoldingRepository.findById(holdingId)
-					.ifPresent(holding -> holding.deductQty(contract.getQty()));
+					.ifPresent(holding -> {
+						int newQty = holding.getQty() - contract.getQty();
+						if (newQty <= 0) {
+							accountEtfHoldingRepository.delete(holding);
+						} else {
+							holding.deductQty(contract.getQty());
+						}
+					});
 				transfers.get(0).complete(0, contract.getQty());
 				contract.activate();
 				initEtfValuation(contract, request.etfCode(), contract.getStartDate());
